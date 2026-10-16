@@ -197,7 +197,8 @@ jobs:
             sudo systemctl restart aiac-agent
             echo "Waiting for agent on port 8080..."
             for i in $(seq 1 30); do
-              curl -sf -o /dev/null http://127.0.0.1:8080/ && echo "Agent is up." && exit 0
+              CODE=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8080/ 2>/dev/null || true)
+              [ "$CODE" = "200" ] && echo "Agent is up (HTTP 200)." && exit 0
               sleep 3
             done
             echo "::error::Agent did not become healthy within 90s"
