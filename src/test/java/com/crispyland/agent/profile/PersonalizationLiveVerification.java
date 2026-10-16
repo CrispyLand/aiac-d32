@@ -7,6 +7,7 @@ import com.crispyland.agent.AgentResult;
 import com.crispyland.agent.memory.MemoryScope;
 import java.util.ArrayList;
 import java.util.List;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,7 @@ import org.springframework.boot.test.context.SpringBootTest;
  */
 @SpringBootTest(properties = "agent.memory.store=memory")
 @EnabledIfEnvironmentVariable(named = "CEREBRAS_API_KEY", matches = ".+")
+@Tag("live")
 class PersonalizationLiveVerification {
 
     /**

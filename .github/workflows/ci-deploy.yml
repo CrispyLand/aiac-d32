@@ -1,0 +1,265 @@
+name: CI & Deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  SSH_OPTS: "-o StrictHostKeyChecking=yes -o BatchMode=yes"
+  VPS_HOST: "russell@2.28.124.111"
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+
+      # No real API keys — tests that need them are guarded by
+      # @EnabledIfEnvironmentVariable and will be skipped.
+      # AgentChatApplicationTests (@SpringBootTest) needs dummy env vars
+      # to satisfy property bindings but makes no external calls.
+      - name: Build & test agent
+        run: mvn -B clean verify -Dgroups='!live'
+        env:
+          CEREBRAS_API_KEY: dummy-ci
+          OPENAI_API_KEY: dummy-ci
+          TELEGRAM_BOT_TOKEN: dummy-ci
+          TELEGRAM_CHAT_ID: "0"
+
+      - name: Build & test MCP server
+        run: mvn -B clean verify
+        working-directory: mcp-server
+
+      - name: Build & test weather server
+        run: mvn -B clean verify
+        working-directory: weather-server
+
+      - name: Upload agent jar
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent-jar
+          path: target/agent-chat-0.0.1-SNAPSHOT.jar
+
+      - name: Upload MCP server jar
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: mcp-jar
+          path: mcp-server/target/mcp-server-0.0.1-SNAPSHOT.jar
+
+      - name: Upload weather server jar
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: weather-jar
+          path: weather-server/target/weather-server-0.0.1-SNAPSHOT.jar
+
+  deploy:
+    needs: build-and-test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: production
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download jars
+        uses: actions/download-artifact@v4
+
+      - name: Set up SSH
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          echo "${{ secrets.VPS_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Preflight — verify sudo and VPS connectivity
+        run: |
+          set -euo pipefail
+          ssh $SSH_OPTS $VPS_HOST 'sudo -n true' \
+            || { echo "::error::Passwordless sudo is not available for russell on VPS"; exit 1; }
+          echo "SSH and sudo OK."
+
+      - name: Create directories on VPS
+        run: |
+          set -euo pipefail
+          ssh $SSH_OPTS $VPS_HOST \
+            "mkdir -p /opt/aiac/mcp/data /opt/aiac/agent/data /opt/aiac/agent/profiles /opt/aiac/notes /opt/aiac/weather"
+
+      - name: Sync git repo for MCP git tools
+        run: |
+          set -euo pipefail
+          rsync -a --delete \
+            -e "ssh $SSH_OPTS" \
+            --exclude='target/' --exclude='.idea/' --exclude='*.jar' \
+            --exclude='.google-tokens/' --exclude='data/' \
+            --exclude='.env' --exclude='credentials.json' \
+            ./ $VPS_HOST:/opt/aiac/repo/
+
+      - name: Upload jars to staging & back up current
+        run: |
+          set -euo pipefail
+          # Upload to temp locations
+          scp $SSH_OPTS agent-jar/agent-chat-0.0.1-SNAPSHOT.jar     $VPS_HOST:/opt/aiac/agent/agent.jar.new
+          scp $SSH_OPTS mcp-jar/mcp-server-0.0.1-SNAPSHOT.jar       $VPS_HOST:/opt/aiac/mcp/mcp-server.jar.new
+          scp $SSH_OPTS weather-jar/weather-server-0.0.1-SNAPSHOT.jar $VPS_HOST:/opt/aiac/weather/weather-server.jar.new
+
+          # Back up current jars (if they exist) and atomically move new ones in
+          ssh $SSH_OPTS $VPS_HOST 'set -euo pipefail
+            for pair in \
+              "/opt/aiac/agent/agent.jar" \
+              "/opt/aiac/mcp/mcp-server.jar" \
+              "/opt/aiac/weather/weather-server.jar"; do
+              if [ -f "$pair" ]; then
+                cp "$pair" "${pair}.bak"
+              fi
+              mv "${pair}.new" "$pair"
+            done
+          '
+
+      - name: Sync profiles
+        run: |
+          set -euo pipefail
+          if [ -d profiles ] && [ "$(ls -A profiles 2>/dev/null)" ]; then
+            rsync -a -e "ssh $SSH_OPTS" profiles/ $VPS_HOST:/opt/aiac/agent/profiles/
+          fi
+
+      - name: Install systemd units
+        run: |
+          set -euo pipefail
+          scp $SSH_OPTS \
+            deploy/aiac-mcp.service \
+            deploy/aiac-weather.service \
+            deploy/aiac-agent.service \
+            $VPS_HOST:/tmp/
+          ssh $SSH_OPTS $VPS_HOST 'set -euo pipefail
+            sudo mv /tmp/aiac-mcp.service     /etc/systemd/system/aiac-mcp.service
+            sudo mv /tmp/aiac-weather.service  /etc/systemd/system/aiac-weather.service
+            sudo mv /tmp/aiac-agent.service    /etc/systemd/system/aiac-agent.service
+            sudo systemctl daemon-reload
+            sudo systemctl enable aiac-mcp aiac-weather aiac-agent
+          '
+
+      - name: Restart MCP server
+        id: restart-mcp
+        run: |
+          set -euo pipefail
+          ssh $SSH_OPTS $VPS_HOST 'set -euo pipefail
+            sudo systemctl restart aiac-mcp
+            echo "Waiting for MCP server on port 8081..."
+            for i in $(seq 1 30); do
+              ss -tlnp | grep -q ":8081" && echo "Port 8081 is open." && exit 0
+              sleep 2
+            done
+            echo "::error::MCP server did not start within 60s"
+            sudo journalctl -u aiac-mcp --no-pager -n 30
+            exit 1
+          '
+
+      - name: Restart weather server
+        id: restart-weather
+        run: |
+          set -euo pipefail
+          ssh $SSH_OPTS $VPS_HOST 'set -euo pipefail
+            sudo systemctl restart aiac-weather
+            echo "Waiting for weather server on port 8082..."
+            for i in $(seq 1 30); do
+              ss -tlnp | grep -q ":8082" && echo "Port 8082 is open." && exit 0
+              sleep 2
+            done
+            echo "::error::Weather server did not start within 60s"
+            sudo journalctl -u aiac-weather --no-pager -n 30
+            exit 1
+          '
+
+      - name: Restart agent
+        id: restart-agent
+        run: |
+          set -euo pipefail
+          ssh $SSH_OPTS $VPS_HOST 'set -euo pipefail
+            sudo systemctl restart aiac-agent
+            echo "Waiting for agent on port 8080..."
+            for i in $(seq 1 30); do
+              curl -sf -o /dev/null http://127.0.0.1:8080/ && echo "Agent is up." && exit 0
+              sleep 3
+            done
+            echo "::error::Agent did not become healthy within 90s"
+            sudo journalctl -u aiac-agent --no-pager -n 30
+            exit 1
+          '
+
+      - name: Rollback on failure
+        if: failure() && (steps.restart-mcp.outcome == 'failure' || steps.restart-weather.outcome == 'failure' || steps.restart-agent.outcome == 'failure')
+        run: |
+          set -euo pipefail
+          echo "::warning::Service restart failed — rolling back to previous jars"
+          ssh $SSH_OPTS $VPS_HOST 'set -euo pipefail
+            ROLLED_BACK=false
+            for pair in \
+              "/opt/aiac/agent/agent.jar" \
+              "/opt/aiac/mcp/mcp-server.jar" \
+              "/opt/aiac/weather/weather-server.jar"; do
+              if [ -f "${pair}.bak" ]; then
+                mv "${pair}.bak" "$pair"
+                ROLLED_BACK=true
+              fi
+            done
+
+            if [ "$ROLLED_BACK" = true ]; then
+              echo "Restored backup jars. Restarting services..."
+              sudo systemctl restart aiac-mcp
+              sleep 5
+              sudo systemctl restart aiac-weather
+              sleep 5
+              sudo systemctl restart aiac-agent
+              sleep 5
+              sudo systemctl status aiac-mcp aiac-weather aiac-agent --no-pager -l \
+                | grep -E "Loaded|Active|Main PID"
+            else
+              echo "::error::No backup jars found — cannot roll back"
+            fi
+          '
+          exit 1
+
+      - name: Trigger RAG reindex via SSH
+        run: |
+          set -euo pipefail
+          ssh $SSH_OPTS $VPS_HOST 'set -euo pipefail
+            echo "Triggering RAG reindex on localhost..."
+            HTTP_CODE=$(curl -sf -o /dev/null -w "%{http_code}" -X POST http://127.0.0.1:8080/indexer/reindex || true)
+            echo "Reindex response: HTTP $HTTP_CODE"
+          '
+
+      - name: Verify services
+        run: |
+          set -euo pipefail
+          ssh $SSH_OPTS $VPS_HOST 'set -euo pipefail
+            sudo systemctl status aiac-mcp aiac-weather aiac-agent --no-pager -l \
+              | grep -E "Loaded|Active|Main PID"
+          '
+
+      - name: Clean up backup jars
+        if: success()
+        run: |
+          ssh $SSH_OPTS $VPS_HOST '
+            rm -f /opt/aiac/agent/agent.jar.bak \
+                  /opt/aiac/mcp/mcp-server.jar.bak \
+                  /opt/aiac/weather/weather-server.jar.bak
+          '
