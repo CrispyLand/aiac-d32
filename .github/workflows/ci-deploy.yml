@@ -141,15 +141,15 @@ jobs:
       - name: Run AI code review
         id: review
         if: steps.gather.outputs.skip != 'true'
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
         run: |
           set -euo pipefail
 
-          PR_TITLE="${{ github.event.pull_request.title }}"
-          PR_BODY="${{ github.event.pull_request.body }}"
-
           # Build JSON payload safely with python3
           python3 -c "
-          import json, sys
+          import json, sys, os
 
           diff = open('/tmp/pr.diff').read()
           changed = [l.strip() for l in open('/tmp/changed_files.txt') if l.strip()]
@@ -157,11 +157,11 @@ jobs:
           payload = {
               'diff': diff,
               'changedFiles': changed,
-              'prTitle': sys.argv[1],
-              'prDescription': sys.argv[2]
+              'prTitle': os.environ['PR_TITLE'],
+              'prDescription': os.environ['PR_BODY']
           }
           sys.stdout.buffer.write(json.dumps(payload).encode())
-          " "$PR_TITLE" "$PR_BODY" \
+          " \
             | ssh $SSH_OPTS $VPS_HOST 'cat' \
             > /tmp/review_response.json
 
