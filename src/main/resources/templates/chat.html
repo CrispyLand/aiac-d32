@@ -12,6 +12,65 @@
             --muted: #94a3b8;
             --accent: #3b82f6;
         }
+        :root.light {
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --line: #e2e8f0;
+            --ink: #1e293b;
+            --muted: #64748b;
+            --accent: #2563eb;
+        }
+        :root.light textarea, :root.light input, :root.light select {
+            background: #ffffff; border-color: #cbd5e1;
+        }
+        :root.light select option { background: #ffffff; color: #1e293b; }
+        :root.light .pill { background: #e2e8f0; }
+        :root.light .pill b { color: #1e293b; }
+        :root.light .stream::-webkit-scrollbar-track { background: #e2e8f0; }
+        :root.light .stream::-webkit-scrollbar-thumb { background: #94a3b8; }
+        :root.light .stream::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        :root.light .turn.user { background: #dbeafe; border-color: #93c5fd88; }
+        :root.light .turn.assistant { background: #f1f5f9; border-color: #e2e8f0; }
+        :root.light .mstats b { color: #334155; }
+        :root.light .used { color: #0d9488; border-color: #14b8a6; background: #ccfbf1; }
+        :root.light .used.broke { color: #dc2626; border-color: #dc2626; background: #fee2e2; }
+        :root.light .error { border-left-color: #ef4444; background: #fee2e2; color: #991b1b; }
+        :root.light .turn.summary { background: #dcfce7; border-color: #22c55e; }
+        :root.light .turn.summary .who { color: #16a34a; }
+        :root.light .turn.facts { background: #f3e8ff; border-color: #a855f7; }
+        :root.light .turn.facts .who { color: #7c3aed; }
+        :root.light .facttable td { border-bottom-color: #e9d5ff; }
+        :root.light .facttable td:first-child { color: #7c3aed; }
+        :root.light .layer b { color: #334155; }
+        :root.light .layer.short-term { box-shadow: inset 0 3px 0 #3b82f6; }
+        :root.light .layer.working { box-shadow: inset 0 3px 0 #22c55e; }
+        :root.light .layer.long-term { box-shadow: inset 0 3px 0 #a855f7; }
+        :root.light .ltmhead b { color: #7c3aed; }
+        :root.light .invnew input, :root.light .invnew select { background: #ffffff; }
+        :root.light .lenspick { background: #ffffff; }
+        :root.light .bname { background: #ffffff; }
+        :root.light .mcpwho b { color: #0d9488; }
+        :root.light .mcphead b { color: #0d9488; }
+        :root.light .mcptool .tname { color: #0d9488; }
+        :root.light .raghead b { color: #7c3aed; }
+        :root.light .rag-score { color: #7c3aed; background: #f3e8ff; border-color: #a855f7; }
+        :root.light .rag-debug { background: #faf5ff; border-color: #e9d5ff; }
+        :root.light .rag-debug summary { color: #7c3aed; }
+        :root.light .rag-debug th { border-bottom-color: #a855f7; }
+        :root.light .rag-debug td { border-bottom-color: #e9d5ff; }
+        :root.light .rag-answer .rag-section-title { color: #1e293b; border-bottom-color: #e2e8f0; }
+        :root.light .rag-answer .rag-cite { background: #dbeafe; color: #2563eb; }
+        :root.light .rag-answer .rag-sources .src-idx { background: #dbeafe; color: #2563eb; }
+        :root.light .rag-answer .rag-sources .src-file { color: #2563eb; }
+        :root.light .rag-answer .rag-quote { border-left-color: #818cf8; background: #eef2ff; color: #4338ca; }
+        /* Theme toggle button */
+        .theme-toggle {
+            background: transparent; border: 1px solid var(--line); color: var(--muted);
+            border-radius: 7px; padding: 5px 10px; font-size: 13px; cursor: pointer;
+            margin-left: auto;
+        }
+        .theme-toggle:hover { color: var(--ink); border-color: var(--muted); }
+        .header-row { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
         * { box-sizing: border-box; }
         body {
             margin: 0;
@@ -474,7 +533,10 @@
 </head>
 <body>
 <div class="wrap">
-    <h1>Agent Chat</h1>
+    <div class="header-row">
+        <h1>Agent Chat</h1>
+        <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">&#9788; Light</button>
+    </div>
     <div class="sub">Spring Boot &rarr; <code>com.crispyland.agent</code> &rarr;
         <span th:if="${llmSwitchable}" th:text="${llmProvider.label()} + ' (' + ${llmProvider.badge()} + ')'">Cerebras (cloud)</span>
         <span th:unless="${llmSwitchable}">Cerebras chat completions</span>
@@ -1621,6 +1683,26 @@
         }
         pollQueue();
         setInterval(pollQueue, 3000);
+    })();
+
+    // Day 32 — Dark/Light theme toggle
+    function toggleTheme() {
+        const html = document.documentElement;
+        const isLight = html.classList.toggle('light');
+        localStorage.setItem('theme', isLight ? 'light' : 'dark');
+        updateToggleBtn(isLight);
+    }
+    function updateToggleBtn(isLight) {
+        const btn = document.getElementById('themeToggle');
+        btn.innerHTML = isLight ? '&#9790; Dark' : '&#9788; Light';
+    }
+    // Restore saved preference
+    (function() {
+        const saved = localStorage.getItem('theme');
+        if (saved === 'light') {
+            document.documentElement.classList.add('light');
+            updateToggleBtn(true);
+        }
     })();
 </script>
 </body>
