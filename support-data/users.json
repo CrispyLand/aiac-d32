@@ -1,0 +1,119 @@
+[
+  {
+    "id": "USR-001",
+    "displayName": "Alice Chen",
+    "email": "alice.chen@example.com",
+    "plan": "pro",
+    "accountStatus": "active",
+    "timezone": "Asia/Shanghai",
+    "integrations": {
+      "googleCalendar": { "connected": true, "lastError": null },
+      "googleTasks": { "connected": true, "lastError": null },
+      "telegram": { "linked": true, "chatId": "881234001" }
+    }
+  },
+  {
+    "id": "USR-002",
+    "displayName": "Bob Martinez",
+    "email": "bob.martinez@example.com",
+    "plan": "free",
+    "accountStatus": "active",
+    "timezone": "America/New_York",
+    "integrations": {
+      "googleCalendar": { "connected": true, "lastError": "invalid_grant" },
+      "googleTasks": { "connected": true, "lastError": "invalid_grant" },
+      "telegram": { "linked": true, "chatId": "881234002" }
+    }
+  },
+  {
+    "id": "USR-003",
+    "displayName": "Clara Novak",
+    "email": "clara.novak@example.com",
+    "plan": "enterprise",
+    "accountStatus": "active",
+    "timezone": "Europe/London",
+    "integrations": {
+      "googleCalendar": { "connected": true, "lastError": null },
+      "googleTasks": { "connected": true, "lastError": null },
+      "telegram": { "linked": false, "chatId": null }
+    }
+  },
+  {
+    "id": "USR-004",
+    "displayName": "Dima Petrov",
+    "email": "dima.petrov@example.com",
+    "plan": "pro",
+    "accountStatus": "active",
+    "timezone": "Europe/Moscow",
+    "integrations": {
+      "googleCalendar": { "connected": true, "lastError": null },
+      "googleTasks": { "connected": false, "lastError": null },
+      "telegram": { "linked": true, "chatId": "881234004" }
+    }
+  },
+  {
+    "id": "USR-005",
+    "displayName": "Eva Lindqvist",
+    "email": "eva.lindqvist@example.com",
+    "plan": "free",
+    "accountStatus": "active",
+    "timezone": "Europe/Stockholm",
+    "integrations": {
+      "googleCalendar": { "connected": false, "lastError": null },
+      "googleTasks": { "connected": false, "lastError": null },
+      "telegram": { "linked": false, "chatId": null }
+    }
+  },
+  {
+    "id": "USR-006",
+    "displayName": "Faisal Rahman",
+    "email": "faisal.rahman@example.com",
+    "plan": "pro",
+    "accountStatus": "suspended",
+    "timezone": "Asia/Dubai",
+    "integrations": {
+      "googleCalendar": { "connected": true, "lastError": null },
+      "googleTasks": { "connected": true, "lastError": null },
+      "telegram": { "linked": true, "chatId": "881234006" }
+    }
+  },
+  {
+    "id": "USR-007",
+    "displayName": "Grace Okafor",
+    "email": "grace.okafor@example.com",
+    "plan": "enterprise",
+    "accountStatus": "active",
+    "timezone": "Africa/Lagos",
+    "integrations": {
+      "googleCalendar": { "connected": true, "lastError": null },
+      "googleTasks": { "connected": true, "lastError": null },
+      "telegram": { "linked": true, "chatId": "881234007" }
+    }
+  },
+  {
+    "id": "USR-008",
+    "displayName": "Hiro Tanaka",
+    "email": "hiro.tanaka@example.com",
+    "plan": "free",
+    "accountStatus": "active",
+    "timezone": "Asia/Tokyo",
+    "integrations": {
+      "googleCalendar": { "connected": true, "lastError": "access_revoked" },
+      "googleTasks": { "connected": false, "lastError": "access_revoked" },
+      "telegram": { "linked": false, "chatId": null }
+    }
+  },
+  {
+    "id": "USR-009",
+    "displayName": "Demo User",
+    "email": "demo@example.com",
+    "plan": "pro",
+    "accountStatus": "active",
+    "timezone": "UTC",
+    "integrations": {
+      "googleCalendar": { "connected": true, "lastError": null },
+      "googleTasks": { "connected": true, "lastError": null },
+      "telegram": { "linked": true, "chatId": "881234009" }
+    }
+  }
+]

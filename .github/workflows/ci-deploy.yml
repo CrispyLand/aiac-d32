@@ -284,6 +284,15 @@ jobs:
           ssh $SSH_OPTS $VPS_HOST \
             "mkdir -p /opt/aiac/mcp/data /opt/aiac/agent/data /opt/aiac/agent/profiles /opt/aiac/notes /opt/aiac/weather /opt/aiac/bin"
 
+      - name: Seed support data (if missing)
+        run: |
+          set -euo pipefail
+          ssh $SSH_OPTS $VPS_HOST 'mkdir -p /opt/aiac/support-data'
+          ssh $SSH_OPTS $VPS_HOST 'test -f /opt/aiac/support-data/users.json' || \
+            scp $SSH_OPTS support-data/users.json $VPS_HOST:/opt/aiac/support-data/users.json
+          ssh $SSH_OPTS $VPS_HOST 'test -f /opt/aiac/support-data/tickets.json' || \
+            scp $SSH_OPTS support-data/tickets.json $VPS_HOST:/opt/aiac/support-data/tickets.json
+
       - name: Sync git repo for MCP git tools
         run: |
           set -euo pipefail
@@ -433,6 +442,15 @@ jobs:
             echo "Triggering RAG reindex on localhost..."
             HTTP_CODE=$(curl -sf -o /dev/null -w "%{http_code}" -X POST http://127.0.0.1:8080/indexer/reindex || true)
             echo "Reindex response: HTTP $HTTP_CODE"
+          '
+
+      - name: Trigger support FAQ reindex via SSH
+        run: |
+          set -euo pipefail
+          ssh $SSH_OPTS $VPS_HOST 'set -euo pipefail
+            echo "Triggering support FAQ reindex on localhost..."
+            HTTP_CODE=$(curl -sf -o /dev/null -w "%{http_code}" -X POST http://127.0.0.1:8080/indexer/reindex-support || true)
+            echo "Support FAQ reindex response: HTTP $HTTP_CODE"
           '
 
       - name: Verify services

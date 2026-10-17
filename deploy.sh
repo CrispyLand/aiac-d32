@@ -43,6 +43,14 @@ WEATHER_JAR="$ROOT/weather-server/target/weather-server-0.0.1-SNAPSHOT.jar"
 echo "==> Creating directories on VPS..."
 vssh "$VPS" "mkdir -p /opt/aiac/mcp/data /opt/aiac/agent/data /opt/aiac/agent/profiles /opt/aiac/notes /opt/aiac/weather /opt/aiac/bin"
 
+# ── 2a. Seed support data (if missing) ────────────────────────────────────────
+echo "==> Seeding support data (if missing)..."
+vssh "$VPS" "mkdir -p /opt/aiac/support-data"
+vssh "$VPS" "test -f /opt/aiac/support-data/users.json" || \
+    vscp "$ROOT/support-data/users.json" "$VPS:/opt/aiac/support-data/users.json"
+vssh "$VPS" "test -f /opt/aiac/support-data/tickets.json" || \
+    vscp "$ROOT/support-data/tickets.json" "$VPS:/opt/aiac/support-data/tickets.json"
+
 # ── 2b. Sync git repo for MCP git tools ───────────────────────────────────────
 echo "==> Syncing git repo to VPS..."
 vrsync -a --delete --exclude='target/' --exclude='.idea/' --exclude='*.jar' \

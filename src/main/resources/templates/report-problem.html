@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Report a Problem — AIAC</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --line: #334155;
+            --ink: #e2e8f0;
+            --muted: #94a3b8;
+            --accent: #3b82f6;
+        }
+        :root.light {
+            --bg: #f8fafc; --card: #ffffff; --line: #e2e8f0;
+            --ink: #1e293b; --muted: #64748b; --accent: #2563eb;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 32px 20px 64px;
+            background: var(--bg); color: var(--ink);
+            font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex; justify-content: center;
+        }
+        .container { max-width: 600px; width: 100%; }
+        h1 { font-size: 22px; margin-bottom: 4px; }
+        .subtitle { color: var(--muted); margin-bottom: 24px; }
+        .form-group { margin-bottom: 16px; }
+        label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; color: var(--muted); }
+        input, textarea, select {
+            width: 100%; padding: 10px; border: 1px solid var(--line);
+            border-radius: 6px; background: var(--card); color: var(--ink);
+            font: inherit;
+        }
+        textarea { resize: vertical; min-height: 120px; }
+        select option { background: var(--card); color: var(--ink); }
+        .row { display: flex; gap: 12px; }
+        .row .form-group { flex: 1; }
+        .submit-btn {
+            background: var(--accent); color: #fff; border: none;
+            border-radius: 6px; padding: 12px 24px; cursor: pointer;
+            font-weight: 600; font-size: 15px; width: 100%;
+        }
+        .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .submit-btn:hover:not(:disabled) { filter: brightness(1.1); }
+        .success {
+            background: #22c55e22; border: 1px solid #22c55e44; color: #22c55e;
+            padding: 16px; border-radius: 8px; text-align: center; margin-top: 16px;
+        }
+        .success .ticket-id { font-size: 20px; font-weight: 700; }
+        .error-msg { color: #ef4444; font-size: 13px; margin-top: 4px; }
+        .char-count { font-size: 11px; color: var(--muted); text-align: right; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Report a Problem</h1>
+    <p class="subtitle">Describe your issue and we'll create a support ticket.</p>
+
+    <form id="reportForm" onsubmit="submitTicket(event)">
+        <div class="form-group">
+            <label for="subject">Subject *</label>
+            <input type="text" id="subject" maxlength="200" required
+                   placeholder="Brief summary of the issue"/>
+            <div class="char-count"><span id="subjectCount">0</span>/200</div>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Description *</label>
+            <textarea id="description" maxlength="5000" required
+                      placeholder="Describe what happened, what you expected, and any error messages you saw."></textarea>
+            <div class="char-count"><span id="descCount">0</span>/5000</div>
+        </div>
+
+        <div class="row">
+            <div class="form-group">
+                <label for="category">Category</label>
+                <select id="category">
+                    <option value="other">Other</option>
+                    <option value="integration">Integration (Calendar, Tasks)</option>
+                    <option value="briefing">Briefing / Schedule</option>
+                    <option value="rag">RAG / Codebase Search</option>
+                    <option value="performance">Performance / Rate Limits</option>
+                    <option value="account">Account</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="priority">Priority</label>
+                <select id="priority">
+                    <option value="medium" selected>Medium</option>
+                    <option value="low">Low</option>
+                    <option value="high">High</option>
+                    <option value="urgent">Urgent</option>
+                </select>
+            </div>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submitBtn">Submit Ticket</button>
+        <div id="errorMsg" class="error-msg" style="display:none;"></div>
+    </form>
+
+    <div id="successMsg" style="display:none;"></div>
+</div>
+
+<script th:inline="none">
+    // Character counters
+    document.getElementById('subject').addEventListener('input', function() {
+        document.getElementById('subjectCount').textContent = this.value.length;
+    });
+    document.getElementById('description').addEventListener('input', function() {
+        document.getElementById('descCount').textContent = this.value.length;
+    });
+
+    // Detect browser
+    function getBrowser() {
+        const ua = navigator.userAgent;
+        if (ua.includes('Firefox/')) return 'Firefox ' + ua.split('Firefox/')[1].split(' ')[0];
+        if (ua.includes('Edg/')) return 'Edge ' + ua.split('Edg/')[1].split(' ')[0];
+        if (ua.includes('Chrome/')) return 'Chrome ' + ua.split('Chrome/')[1].split(' ')[0];
+        if (ua.includes('Safari/') && ua.includes('Version/')) return 'Safari ' + ua.split('Version/')[1].split(' ')[0];
+        return 'Unknown';
+    }
+
+    // Theme
+    (function() {
+        if (localStorage.getItem('theme') === 'light') {
+            document.documentElement.classList.add('light');
+        }
+    })();
+
+    async function submitTicket(e) {
+        e.preventDefault();
+        const btn = document.getElementById('submitBtn');
+        const errEl = document.getElementById('errorMsg');
+        errEl.style.display = 'none';
+
+        const subject = document.getElementById('subject').value.trim();
+        const description = document.getElementById('description').value.trim();
+        const category = document.getElementById('category').value;
+        const priority = document.getElementById('priority').value;
+
+        if (!subject || !description) {
+            errEl.textContent = 'Subject and description are required.';
+            errEl.style.display = 'block';
+            return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = 'Submitting...';
+
+        try {
+            const res = await fetch('/api/support/tickets', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    subject: subject,
+                    description: description,
+                    category: category,
+                    priority: priority,
+                    browser: getBrowser(),
+                    appVersion: '0.0.1'
+                })
+            });
+
+            const data = await res.json();
+            if (data.error) {
+                errEl.textContent = data.error;
+                errEl.style.display = 'block';
+                btn.disabled = false;
+                btn.textContent = 'Submit Ticket';
+                return;
+            }
+
+            // Success
+            document.getElementById('reportForm').style.display = 'none';
+            const successEl = document.getElementById('successMsg');
+            successEl.style.display = 'block';
+            successEl.className = 'success';
+
+            const heading = document.createElement('div');
+            heading.textContent = 'Ticket Created';
+            heading.style.fontWeight = '600';
+            heading.style.marginBottom = '8px';
+            successEl.appendChild(heading);
+
+            const ticketId = document.createElement('div');
+            ticketId.className = 'ticket-id';
+            ticketId.textContent = data.id;
+            successEl.appendChild(ticketId);
+
+            const msg = document.createElement('p');
+            msg.textContent = 'Your ticket has been submitted. We\'ll get back to you as soon as possible.';
+            successEl.appendChild(msg);
+
+        } catch (err) {
+            errEl.textContent = 'Failed to submit: ' + err.message;
+            errEl.style.display = 'block';
+            btn.disabled = false;
+            btn.textContent = 'Submit Ticket';
+        }
+    }
+</script>
+
+</body>
+</html>

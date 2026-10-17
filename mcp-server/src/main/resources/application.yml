@@ -112,6 +112,9 @@ notes:
     reasoning-effort: ""
     timeout: 30s
 
+support:
+  directory: ${SUPPORT_DATA_DIR:./support-data}
+
 telegram:
   # Both are blank by default: the job still runs without them, the notifier becomes a no-op.
   # Set via environment: TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID.
