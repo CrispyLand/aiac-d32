@@ -1,4 +1,4 @@
-name: CI & Deploy
+name: CI & Deploy  # test branch protection
 
 on:
   push:
