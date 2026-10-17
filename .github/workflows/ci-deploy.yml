@@ -1,4 +1,4 @@
-name: CI & Deploy  # test branch protection
+name: CI & Deploy
 
 on:
   push:
@@ -65,6 +65,187 @@ jobs:
           name: weather-jar
           path: weather-server/target/weather-server-0.0.1-SNAPSHOT.jar
 
+  # Advisory AI code review — runs on PRs, non-blocking.
+  # Uses a restricted SSH key that can only run the aiac-review script.
+  pr-review:
+    needs: build-and-test
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    concurrency:
+      group: pr-review-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up SSH (review key)
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          echo "${{ secrets.VPS_REVIEW_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          echo "${{ secrets.VPS_REVIEW_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Generate and sanitize diff
+        id: gather
+        run: |
+          set -euo pipefail
+
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+
+          # Generate diff excluding binary, generated, and secret files
+          git diff "$BASE_SHA".."$HEAD_SHA" \
+            -- . \
+            ':!*.jar' ':!*.class' ':!*.lock' ':!package-lock.json' ':!yarn.lock' \
+            ':!target/' ':!*.png' ':!*.jpg' ':!*.gif' ':!*.ico' ':!*.woff' ':!*.woff2' \
+            ':!.env' ':!credentials.json' ':!token.json' ':!*.pem' ':!*.key' ':!*.p12' \
+            ':!.google-tokens/' ':!*.DS_Store' \
+            > /tmp/pr_raw.diff
+
+          # Redact obvious secrets/tokens (inline patterns)
+          sed -E \
+            -e 's/(csk-)[A-Za-z0-9_-]{10,}/\1REDACTED/g' \
+            -e 's/(sk-)[A-Za-z0-9_-]{10,}/\1REDACTED/g' \
+            -e 's/(Bearer )[A-Za-z0-9._-]{10,}/\1REDACTED/g' \
+            -e 's/-----BEGIN [A-Z ]+ KEY-----/-----BEGIN REDACTED KEY-----/g' \
+            /tmp/pr_raw.diff > /tmp/pr.diff
+
+          # Changed files list (filtered the same way)
+          git diff --name-only "$BASE_SHA".."$HEAD_SHA" \
+            -- . \
+            ':!*.jar' ':!*.class' ':!*.lock' ':!package-lock.json' ':!yarn.lock' \
+            ':!target/' ':!*.png' ':!*.jpg' ':!*.gif' ':!*.ico' ':!*.woff' ':!*.woff2' \
+            ':!.env' ':!credentials.json' ':!token.json' ':!*.pem' ':!*.key' ':!*.p12' \
+            ':!.google-tokens/' \
+            | head -30 > /tmp/changed_files.txt
+
+          DIFF_SIZE=$(wc -c < /tmp/pr.diff | tr -d ' ')
+          FILE_COUNT=$(wc -l < /tmp/changed_files.txt | tr -d ' ')
+          echo "Diff size: ${DIFF_SIZE} bytes, ${FILE_COUNT} changed files"
+
+          if [ "$DIFF_SIZE" -eq 0 ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run AI code review
+        id: review
+        if: steps.gather.outputs.skip != 'true'
+        run: |
+          set -euo pipefail
+
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          PR_BODY="${{ github.event.pull_request.body }}"
+
+          # Build JSON payload safely with python3
+          python3 -c "
+          import json, sys
+
+          diff = open('/tmp/pr.diff').read()
+          changed = [l.strip() for l in open('/tmp/changed_files.txt') if l.strip()]
+
+          payload = {
+              'diff': diff,
+              'changedFiles': changed,
+              'prTitle': sys.argv[1],
+              'prDescription': sys.argv[2]
+          }
+          sys.stdout.buffer.write(json.dumps(payload).encode())
+          " "$PR_TITLE" "$PR_BODY" \
+            | ssh $SSH_OPTS $VPS_HOST 'cat' \
+            > /tmp/review_response.json
+
+          # Extract review text
+          python3 -c "
+          import json, sys
+          try:
+              d = json.load(open('/tmp/review_response.json'))
+              review = d.get('review', '')
+              if not review:
+                  error = d.get('error', 'No review returned')
+                  print(f'Review endpoint returned error: {error}', file=sys.stderr)
+                  sys.exit(1)
+              print(review)
+          except json.JSONDecodeError:
+              raw = open('/tmp/review_response.json').read()[:500]
+              print(f'Invalid JSON response: {raw}', file=sys.stderr)
+              sys.exit(1)
+          " > /tmp/review_text.md
+
+      - name: Post or update review comment
+        if: steps.gather.outputs.skip != 'true' && steps.review.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          PR_NUM="${{ github.event.pull_request.number }}"
+          REPO="${{ github.repository }}"
+          MARKER="<!-- aiac-review -->"
+
+          # Build final comment
+          {
+            echo "$MARKER"
+            echo "## AI Code Review"
+            echo ""
+            echo "_Powered by Cerebras gpt-oss-120b with RAG codebase context_"
+            echo ""
+            cat /tmp/review_text.md
+          } > /tmp/final_comment.md
+
+          BODY=$(cat /tmp/final_comment.md)
+
+          # Find existing review comment
+          EXISTING=$(gh api "repos/$REPO/issues/$PR_NUM/comments" \
+            --jq ".[] | select(.body | contains(\"$MARKER\")) | .id" \
+            | head -1 || true)
+
+          if [ -n "$EXISTING" ]; then
+            echo "Updating existing review comment $EXISTING"
+            gh api "repos/$REPO/issues/comments/$EXISTING" \
+              -X PATCH -f body="$BODY"
+          else
+            echo "Creating new review comment"
+            gh pr comment "$PR_NUM" --body-file /tmp/final_comment.md
+          fi
+
+      - name: Post error comment if review failed
+        if: steps.gather.outputs.skip != 'true' && steps.review.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          PR_NUM="${{ github.event.pull_request.number }}"
+          REPO="${{ github.repository }}"
+          MARKER="<!-- aiac-review -->"
+
+          BODY="${MARKER}
+          ## AI Code Review
+
+          Review failed to complete. Check the [Actions log](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details."
+
+          EXISTING=$(gh api "repos/$REPO/issues/$PR_NUM/comments" \
+            --jq ".[] | select(.body | contains(\"$MARKER\")) | .id" \
+            | head -1 || true)
+
+          if [ -n "$EXISTING" ]; then
+            gh api "repos/$REPO/issues/comments/$EXISTING" \
+              -X PATCH -f body="$BODY"
+          else
+            gh pr comment "$PR_NUM" --body "$BODY"
+          fi
+
   deploy:
     needs: build-and-test
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -101,7 +282,7 @@ jobs:
         run: |
           set -euo pipefail
           ssh $SSH_OPTS $VPS_HOST \
-            "mkdir -p /opt/aiac/mcp/data /opt/aiac/agent/data /opt/aiac/agent/profiles /opt/aiac/notes /opt/aiac/weather"
+            "mkdir -p /opt/aiac/mcp/data /opt/aiac/agent/data /opt/aiac/agent/profiles /opt/aiac/notes /opt/aiac/weather /opt/aiac/bin"
 
       - name: Sync git repo for MCP git tools
         run: |
@@ -133,6 +314,12 @@ jobs:
               mv "${pair}.new" "$pair"
             done
           '
+
+      - name: Install review script
+        run: |
+          set -euo pipefail
+          scp $SSH_OPTS deploy/aiac-review.sh $VPS_HOST:/opt/aiac/bin/aiac-review
+          ssh $SSH_OPTS $VPS_HOST "chmod +x /opt/aiac/bin/aiac-review"
 
       - name: Sync profiles
         run: |

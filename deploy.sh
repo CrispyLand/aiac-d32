@@ -41,7 +41,7 @@ WEATHER_JAR="$ROOT/weather-server/target/weather-server-0.0.1-SNAPSHOT.jar"
 
 # ── 2. Provision directories (idempotent) ─────────────────────────────────────
 echo "==> Creating directories on VPS..."
-vssh "$VPS" "mkdir -p /opt/aiac/mcp/data /opt/aiac/agent/data /opt/aiac/agent/profiles /opt/aiac/notes /opt/aiac/weather"
+vssh "$VPS" "mkdir -p /opt/aiac/mcp/data /opt/aiac/agent/data /opt/aiac/agent/profiles /opt/aiac/notes /opt/aiac/weather /opt/aiac/bin"
 
 # ── 2b. Sync git repo for MCP git tools ───────────────────────────────────────
 echo "==> Syncing git repo to VPS..."
@@ -62,6 +62,11 @@ vscp "$MCP_JAR" "$VPS:/opt/aiac/mcp/mcp-server.jar"
 
 echo "==> Uploading weather server jar ($(du -h "$WEATHER_JAR" | cut -f1))..."
 vscp "$WEATHER_JAR" "$VPS:/opt/aiac/weather/weather-server.jar"
+
+# ── 4b. Install review script ─────────────────────────────────────────────────
+echo "==> Installing review script..."
+vscp "$ROOT/deploy/aiac-review.sh" "$VPS:/opt/aiac/bin/aiac-review"
+vssh "$VPS" "chmod +x /opt/aiac/bin/aiac-review"
 
 # ── 5. Upload Google credentials ──────────────────────────────────────────────
 echo "==> Uploading credentials.json..."
