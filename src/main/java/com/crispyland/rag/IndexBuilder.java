@@ -55,6 +55,31 @@ public class IndexBuilder {
     }
 
     /**
+     * Builds a separate RAG index from the support FAQ docs (files under docs/support/).
+     */
+    public IndexFile buildSupportFaqIndex() throws IOException {
+        List<LoadedDocument> allDocs = loader.loadAll();
+        List<LoadedDocument> supportDocs = allDocs.stream()
+                .filter(d -> d.sourceFile().contains("docs/support/"))
+                .toList();
+        log.info("IndexBuilder [support-faq]: found {} support docs out of {} total",
+                supportDocs.size(), allDocs.size());
+
+        List<Chunk> chunks = new ArrayList<>();
+        for (LoadedDocument doc : supportDocs) {
+            chunks.addAll(structured.chunk(doc));
+        }
+        log.info("IndexBuilder [support-faq]: {} chunks before embedding", chunks.size());
+
+        chunks = embedAll(chunks);
+
+        IndexMetadata meta = buildMetadata("support-faq", chunks);
+        IndexFile file = new IndexFile(meta, chunks);
+        store.save(file, "support-faq");
+        return file;
+    }
+
+    /**
      * Chunks, embeds, and merges a single document into the existing structured index.
      * Existing chunks from the same sourceFile are replaced, not duplicated.
      */

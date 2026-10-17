@@ -63,9 +63,24 @@ public class IndexerController {
                 log.info("Re-indexing started...");
                 builder.buildAndSave("fixed");
                 builder.buildAndSave("structured");
+                builder.buildSupportFaqIndex();
                 log.info("Re-indexing complete.");
             } catch (IOException e) {
                 log.error("Re-indexing failed: {}", e.getMessage(), e);
+            }
+        }, "indexer-thread").start();
+        return "redirect:/indexer";
+    }
+
+    @PostMapping("/reindex-support")
+    public String reindexSupport() {
+        new Thread(() -> {
+            try {
+                log.info("Support FAQ re-indexing started...");
+                builder.buildSupportFaqIndex();
+                log.info("Support FAQ re-indexing complete.");
+            } catch (IOException e) {
+                log.error("Support FAQ re-indexing failed: {}", e.getMessage(), e);
             }
         }, "indexer-thread").start();
         return "redirect:/indexer";

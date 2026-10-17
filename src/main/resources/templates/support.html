@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>AIAC Support Console</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --line: #334155;
+            --ink: #e2e8f0;
+            --muted: #94a3b8;
+            --accent: #3b82f6;
+        }
+        :root.light {
+            --bg: #f8fafc; --card: #ffffff; --line: #e2e8f0;
+            --ink: #1e293b; --muted: #64748b; --accent: #2563eb;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0; padding: 0;
+            background: var(--bg); color: var(--ink);
+            font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex; height: 100vh; overflow: hidden;
+        }
+
+        /* Left panel */
+        .left { width: 320px; min-width: 280px; border-right: 1px solid var(--line);
+                display: flex; flex-direction: column; }
+        .left-header { padding: 16px; border-bottom: 1px solid var(--line);
+                       display: flex; align-items: center; gap: 8px; }
+        .left-header h2 { margin: 0; font-size: 16px; }
+        .theme-toggle {
+            background: transparent; border: 1px solid var(--line); color: var(--muted);
+            border-radius: 7px; padding: 4px 8px; font-size: 12px; cursor: pointer; margin-left: auto;
+        }
+        .filter-bar { display: flex; gap: 4px; padding: 8px 16px; border-bottom: 1px solid var(--line); }
+        .filter-btn {
+            background: transparent; border: 1px solid var(--line); color: var(--muted);
+            border-radius: 5px; padding: 4px 10px; font-size: 12px; cursor: pointer;
+        }
+        .filter-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+        .ticket-list { flex: 1; overflow-y: auto; padding: 8px; }
+        .ticket-card {
+            padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px;
+            margin-bottom: 6px; cursor: pointer; transition: background 0.15s;
+        }
+        .ticket-card:hover { background: var(--line); }
+        .ticket-card.selected { border-color: var(--accent); background: rgba(59,130,246,0.1); }
+        .ticket-id { font-size: 11px; color: var(--muted); }
+        .ticket-subject { font-weight: 600; font-size: 13px; margin: 2px 0; }
+        .badge {
+            display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 4px;
+            font-weight: 600; text-transform: uppercase;
+        }
+        .badge-open { background: #22c55e22; color: #22c55e; }
+        .badge-pending { background: #eab30822; color: #eab308; }
+        .badge-closed { background: #64748b22; color: #64748b; }
+        .badge-urgent { background: #ef444422; color: #ef4444; }
+        .badge-high { background: #f9731622; color: #f97316; }
+        .badge-medium { background: #3b82f622; color: #3b82f6; }
+        .badge-low { background: #64748b22; color: #94a3b8; }
+
+        /* Right panel */
+        .right { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .detail-pane { flex: 1; overflow-y: auto; padding: 20px; }
+        .detail-empty { text-align: center; color: var(--muted); margin-top: 80px; }
+
+        .detail-header { margin-bottom: 16px; }
+        .detail-header h3 { margin: 0 0 4px; }
+        .detail-meta { font-size: 12px; color: var(--muted); display: flex; gap: 8px; flex-wrap: wrap; }
+
+        .user-context {
+            background: var(--card); border: 1px solid var(--line); border-radius: 8px;
+            padding: 12px; margin-bottom: 16px; font-size: 13px;
+        }
+        .user-context h4 { margin: 0 0 8px; font-size: 13px; color: var(--muted); }
+        .user-field { display: flex; gap: 8px; margin-bottom: 4px; }
+        .user-field .label { color: var(--muted); min-width: 100px; }
+
+        .messages { margin-bottom: 16px; }
+        .msg { padding: 8px 12px; border-radius: 8px; margin-bottom: 6px; font-size: 13px; }
+        .msg-user { background: #3b82f620; border: 1px solid #3b82f640; }
+        .msg-support { background: #22c55e15; border: 1px solid #22c55e30; }
+        .msg-from { font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 2px; }
+
+        /* Assistant panel */
+        .assist-panel {
+            border-top: 1px solid var(--line); padding: 16px;
+            background: var(--card);
+        }
+        .assist-input { display: flex; gap: 8px; margin-bottom: 12px; }
+        .assist-input textarea {
+            flex: 1; resize: none; padding: 8px; border: 1px solid var(--line);
+            border-radius: 6px; background: var(--bg); color: var(--ink);
+            font: inherit; min-height: 60px;
+        }
+        .assist-btn {
+            background: var(--accent); color: #fff; border: none; border-radius: 6px;
+            padding: 8px 16px; cursor: pointer; font-weight: 600; white-space: nowrap;
+            align-self: flex-end;
+        }
+        .assist-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .assist-result { max-height: 400px; overflow-y: auto; font-size: 13px; }
+        .assist-section { margin-bottom: 12px; }
+        .assist-section h4 { margin: 0 0 4px; font-size: 13px; color: var(--accent); }
+        .assist-section pre {
+            white-space: pre-wrap; margin: 0; background: var(--bg);
+            padding: 8px; border-radius: 6px; border: 1px solid var(--line);
+        }
+        .copy-btn {
+            background: transparent; border: 1px solid var(--line); color: var(--muted);
+            border-radius: 4px; padding: 2px 8px; font-size: 11px; cursor: pointer; margin-left: 8px;
+        }
+        .escalate-flag {
+            background: #ef444422; color: #ef4444; padding: 6px 12px;
+            border-radius: 6px; font-weight: 600; margin-bottom: 8px;
+        }
+        .source-item { margin-bottom: 4px; }
+        .source-file { color: var(--accent); font-size: 12px; }
+        .source-quote {
+            border-left: 3px solid var(--line); padding-left: 8px; margin: 4px 0;
+            font-style: italic; color: var(--muted); font-size: 12px;
+        }
+        .verified { color: #22c55e; }
+        .rejected { color: #ef4444; }
+        .loading { text-align: center; color: var(--muted); padding: 20px; }
+        .assist-stats { font-size: 11px; color: var(--muted); margin-top: 8px; }
+    </style>
+</head>
+<body>
+
+<div class="left">
+    <div class="left-header">
+        <h2>Support</h2>
+        <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">Light</button>
+    </div>
+    <div class="filter-bar">
+        <button class="filter-btn active" data-status="">All</button>
+        <button class="filter-btn" data-status="open">Open</button>
+        <button class="filter-btn" data-status="pending">Pending</button>
+        <button class="filter-btn" data-status="closed">Closed</button>
+    </div>
+    <div class="ticket-list" id="ticketList"></div>
+</div>
+
+<div class="right">
+    <div class="detail-pane" id="detailPane">
+        <div class="detail-empty">Select a ticket from the left panel</div>
+    </div>
+    <div class="assist-panel">
+        <div class="assist-input">
+            <textarea id="assistQ" placeholder="Ask the assistant about this ticket..." disabled></textarea>
+            <button class="assist-btn" id="assistBtn" onclick="askAssistant()" disabled>Ask Assistant</button>
+        </div>
+        <div class="assist-result" id="assistResult"></div>
+    </div>
+</div>
+
+<script th:inline="none">
+    let tickets = [];
+    let users = {};
+    let selectedTicketId = null;
+    let currentFilter = '';
+
+    // Theme
+    function toggleTheme() {
+        document.documentElement.classList.toggle('light');
+        const isLight = document.documentElement.classList.contains('light');
+        localStorage.setItem('theme', isLight ? 'light' : 'dark');
+        document.getElementById('themeBtn').textContent = isLight ? 'Dark' : 'Light';
+    }
+    (function() {
+        if (localStorage.getItem('theme') === 'light') {
+            document.documentElement.classList.add('light');
+            document.getElementById('themeBtn').textContent = 'Dark';
+        }
+    })();
+
+    // Load data
+    async function loadTickets() {
+        try {
+            const statusParam = currentFilter ? '?status=' + currentFilter : '';
+            const res = await fetch('/api/support/tickets' + statusParam);
+            tickets = await res.json();
+            renderTicketList();
+        } catch (e) {
+            console.error('Failed to load tickets:', e);
+        }
+    }
+
+    async function loadUsers() {
+        try {
+            const res = await fetch('/api/support/users');
+            const list = await res.json();
+            list.forEach(u => { users[u.id] = u; });
+        } catch (e) {
+            console.error('Failed to load users:', e);
+        }
+    }
+
+    function renderTicketList() {
+        const el = document.getElementById('ticketList');
+        el.innerHTML = '';
+        tickets.forEach(t => {
+            const card = document.createElement('div');
+            card.className = 'ticket-card' + (t.id === selectedTicketId ? ' selected' : '');
+            card.onclick = () => selectTicket(t.id);
+
+            const idSpan = document.createElement('span');
+            idSpan.className = 'ticket-id';
+            idSpan.textContent = t.id + ' \u00b7 ' + (t.createdAt || '').substring(0, 10);
+            card.appendChild(idSpan);
+
+            const subj = document.createElement('div');
+            subj.className = 'ticket-subject';
+            subj.textContent = t.subject;
+            card.appendChild(subj);
+
+            const badges = document.createElement('div');
+            const statusBadge = document.createElement('span');
+            statusBadge.className = 'badge badge-' + t.status;
+            statusBadge.textContent = t.status;
+            badges.appendChild(statusBadge);
+
+            const prioBadge = document.createElement('span');
+            prioBadge.className = 'badge badge-' + t.priority;
+            prioBadge.textContent = t.priority;
+            prioBadge.style.marginLeft = '4px';
+            badges.appendChild(prioBadge);
+
+            card.appendChild(badges);
+            el.appendChild(card);
+        });
+    }
+
+    async function selectTicket(id) {
+        selectedTicketId = id;
+        renderTicketList();
+
+        const pane = document.getElementById('detailPane');
+        pane.innerHTML = '<div class="loading">Loading...</div>';
+
+        try {
+            const res = await fetch('/api/support/tickets/' + id);
+            const ticket = await res.json();
+            renderDetail(ticket);
+
+            document.getElementById('assistQ').disabled = false;
+            document.getElementById('assistBtn').disabled = false;
+            document.getElementById('assistResult').innerHTML = '';
+        } catch (e) {
+            pane.innerHTML = '<div class="detail-empty">Failed to load ticket</div>';
+        }
+    }
+
+    function renderDetail(t) {
+        const pane = document.getElementById('detailPane');
+        pane.innerHTML = '';
+
+        // Header
+        const header = document.createElement('div');
+        header.className = 'detail-header';
+        const h3 = document.createElement('h3');
+        h3.textContent = t.id + ': ' + t.subject;
+        header.appendChild(h3);
+
+        const meta = document.createElement('div');
+        meta.className = 'detail-meta';
+        const items = [
+            'Status: ' + t.status,
+            'Priority: ' + t.priority,
+            'Category: ' + t.category,
+            'User: ' + t.userId
+        ];
+        items.forEach(item => {
+            const span = document.createElement('span');
+            span.className = 'badge badge-' + (t.status === item.split(': ')[1] ? t.status : 'medium');
+            span.textContent = item;
+            span.className = '';
+            span.style.fontSize = '12px';
+            span.style.color = 'var(--muted)';
+            meta.appendChild(span);
+        });
+        header.appendChild(meta);
+        pane.appendChild(header);
+
+        // Description
+        const desc = document.createElement('div');
+        desc.style.cssText = 'margin-bottom:16px;padding:12px;background:var(--card);border:1px solid var(--line);border-radius:8px;';
+        const descText = document.createElement('p');
+        descText.style.margin = '0';
+        descText.textContent = t.description;
+        desc.appendChild(descText);
+        pane.appendChild(desc);
+
+        // User context
+        const user = users[t.userId];
+        if (user) {
+            const uctx = document.createElement('div');
+            uctx.className = 'user-context';
+            const uh = document.createElement('h4');
+            uh.textContent = 'User: ' + user.displayName;
+            uctx.appendChild(uh);
+
+            const fields = [
+                ['Plan', user.plan],
+                ['Status', user.accountStatus],
+                ['Timezone', user.timezone]
+            ];
+            if (user.integrations) {
+                const gc = user.integrations.googleCalendar;
+                if (gc) fields.push(['Calendar', gc.connected ? (gc.lastError || 'connected') : 'not connected']);
+                const tg = user.integrations.telegram;
+                if (tg) fields.push(['Telegram', tg.linked ? 'linked' : 'not linked']);
+            }
+            fields.forEach(([label, value]) => {
+                const row = document.createElement('div');
+                row.className = 'user-field';
+                const lbl = document.createElement('span');
+                lbl.className = 'label';
+                lbl.textContent = label;
+                const val = document.createElement('span');
+                val.textContent = value || '-';
+                row.appendChild(lbl);
+                row.appendChild(val);
+                uctx.appendChild(row);
+            });
+            pane.appendChild(uctx);
+        }
+
+        // Messages
+        if (t.messages && t.messages.length > 0) {
+            const msgsDiv = document.createElement('div');
+            msgsDiv.className = 'messages';
+            t.messages.forEach(m => {
+                const msg = document.createElement('div');
+                msg.className = 'msg msg-' + m.from;
+                const from = document.createElement('div');
+                from.className = 'msg-from';
+                from.textContent = m.from + ' \u00b7 ' + (m.at || '').substring(0, 16).replace('T', ' ');
+                msg.appendChild(from);
+                const text = document.createElement('div');
+                text.textContent = m.text;
+                msg.appendChild(text);
+                msgsDiv.appendChild(msg);
+            });
+            pane.appendChild(msgsDiv);
+        }
+    }
+
+    async function askAssistant() {
+        if (!selectedTicketId) return;
+        const q = document.getElementById('assistQ').value.trim();
+        if (!q) return;
+
+        const btn = document.getElementById('assistBtn');
+        const result = document.getElementById('assistResult');
+        btn.disabled = true;
+        btn.textContent = 'Analyzing...';
+        result.innerHTML = '<div class="loading">Analyzing ticket with FAQ context...</div>';
+
+        try {
+            const res = await fetch('/api/support/assist', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ticketId: selectedTicketId, question: q })
+            });
+            const data = await res.json();
+            if (data.error) {
+                result.innerHTML = '';
+                const err = document.createElement('div');
+                err.style.color = '#ef4444';
+                err.textContent = 'Error: ' + data.error;
+                result.appendChild(err);
+            } else {
+                renderAssistResult(data);
+            }
+        } catch (e) {
+            result.innerHTML = '';
+            const err = document.createElement('div');
+            err.style.color = '#ef4444';
+            err.textContent = 'Request failed: ' + e.message;
+            result.appendChild(err);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Ask Assistant';
+        }
+    }
+
+    function renderAssistResult(data) {
+        const el = document.getElementById('assistResult');
+        el.innerHTML = '';
+
+        if (data.escalationRecommended) {
+            const flag = document.createElement('div');
+            flag.className = 'escalate-flag';
+            flag.textContent = 'ESCALATION RECOMMENDED';
+            el.appendChild(flag);
+        }
+
+        // Customer Reply
+        addSection(el, 'Customer Reply Draft', data.customerReplyDraft, true);
+        addSection(el, 'Internal Notes', data.internalNotes);
+
+        // Likely Cause + Confidence
+        const cause = document.createElement('div');
+        cause.className = 'assist-section';
+        const causeH = document.createElement('h4');
+        causeH.textContent = 'Likely Cause (' + (data.confidence || 'medium') + ')';
+        cause.appendChild(causeH);
+        const causeP = document.createElement('pre');
+        causeP.textContent = data.likelyCause || '-';
+        cause.appendChild(causeP);
+        el.appendChild(cause);
+
+        // Next Steps
+        if (data.nextSteps && data.nextSteps.length > 0) {
+            const steps = document.createElement('div');
+            steps.className = 'assist-section';
+            const stepsH = document.createElement('h4');
+            stepsH.textContent = 'Next Steps';
+            steps.appendChild(stepsH);
+            const ol = document.createElement('ol');
+            ol.style.cssText = 'margin:0;padding-left:20px;';
+            data.nextSteps.forEach(s => {
+                const li = document.createElement('li');
+                li.textContent = s;
+                ol.appendChild(li);
+            });
+            steps.appendChild(ol);
+            el.appendChild(steps);
+        }
+
+        // Sources
+        if (data.sources && data.sources.length > 0) {
+            const srcs = document.createElement('div');
+            srcs.className = 'assist-section';
+            const srcsH = document.createElement('h4');
+            srcsH.textContent = 'FAQ Sources';
+            srcs.appendChild(srcsH);
+            data.sources.forEach(s => {
+                const item = document.createElement('div');
+                item.className = 'source-item';
+                const file = document.createElement('div');
+                file.className = 'source-file';
+                file.textContent = (s.file || '?') + (s.section ? ' | ' + s.section : '');
+                item.appendChild(file);
+                if (s.quote) {
+                    const quote = document.createElement('div');
+                    quote.className = 'source-quote';
+                    quote.textContent = '"' + s.quote + '"';
+                    const status = document.createElement('span');
+                    status.className = s.verified === 'verified' ? 'verified' : (s.verified === 'rejected' ? 'rejected' : '');
+                    status.textContent = ' [' + (s.verified || 'unverified') + ']';
+                    quote.appendChild(status);
+                    item.appendChild(quote);
+                }
+                srcs.appendChild(item);
+            });
+            el.appendChild(srcs);
+        }
+
+        // Stats
+        const stats = document.createElement('div');
+        stats.className = 'assist-stats';
+        stats.textContent = data.model + ' \u00b7 ' + data.latencyMs + 'ms \u00b7 ' +
+            data.promptTokens + '/' + data.completionTokens + ' tokens';
+        el.appendChild(stats);
+    }
+
+    function addSection(parent, title, text, copyable) {
+        if (!text) return;
+        const sec = document.createElement('div');
+        sec.className = 'assist-section';
+        const h = document.createElement('h4');
+        h.textContent = title;
+        if (copyable) {
+            const btn = document.createElement('button');
+            btn.className = 'copy-btn';
+            btn.textContent = 'Copy';
+            btn.onclick = () => { navigator.clipboard.writeText(text); btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy', 1500); };
+            h.appendChild(btn);
+        }
+        sec.appendChild(h);
+        const pre = document.createElement('pre');
+        pre.textContent = text;
+        sec.appendChild(pre);
+        parent.appendChild(sec);
+    }
+
+    // Filter buttons
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.onclick = () => {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentFilter = btn.dataset.status;
+            loadTickets();
+        };
+    });
+
+    // Init
+    (async function() {
+        await loadUsers();
+        await loadTickets();
+    })();
+</script>
+
+</body>
+</html>

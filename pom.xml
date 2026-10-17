@@ -180,6 +180,22 @@
 						</configuration>
 					</execution>
 					<execution>
+						<id>copy-support-docs</id>
+						<phase>generate-resources</phase>
+						<goals><goal>copy-resources</goal></goals>
+						<configuration>
+							<outputDirectory>${project.build.outputDirectory}/docs/support</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${project.basedir}/support-docs</directory>
+									<includes>
+										<include>**/*.md</include>
+									</includes>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+					<execution>
 						<id>copy-project-docs</id>
 						<phase>generate-resources</phase>
 						<goals><goal>copy-resources</goal></goals>

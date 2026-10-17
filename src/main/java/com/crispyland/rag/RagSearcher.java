@@ -37,9 +37,14 @@ public class RagSearcher {
     }
 
     public RagSearchResult search(String query, List<String> recentContext, RagConfig config) {
+        return search(query, recentContext, config, "structured");
+    }
+
+    public RagSearchResult search(String query, List<String> recentContext,
+                                   RagConfig config, String indexName) {
         long totalStart = System.nanoTime();
 
-        Optional<IndexFile> indexFile = store.load("structured");
+        Optional<IndexFile> indexFile = store.load(indexName);
         if (indexFile.isEmpty()) return RagSearchResult.empty(query);
 
         // 1. Query rewrite
