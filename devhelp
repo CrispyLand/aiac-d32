@@ -13,7 +13,27 @@
 
 set -euo pipefail
 
-HOST="${DEVHELP_HOST:-http://localhost:8080}"
+TUNNEL_PORT=18080
+TUNNEL_HOST="russell@2.28.124.111"
+
+if [ -n "${DEVHELP_HOST:-}" ]; then
+    HOST="$DEVHELP_HOST"
+else
+    # Use an SSH tunnel to reach the agent on VPS localhost:8080
+    if curl -sf -o /dev/null --max-time 1 "http://localhost:$TUNNEL_PORT/" 2>/dev/null; then
+        # Tunnel already open
+        HOST="http://localhost:$TUNNEL_PORT"
+    else
+        echo "Opening SSH tunnel to VPS..." >&2
+        ssh -fNL "$TUNNEL_PORT:127.0.0.1:8080" "$TUNNEL_HOST"
+        sleep 1
+        if ! curl -sf -o /dev/null --max-time 2 "http://localhost:$TUNNEL_PORT/" 2>/dev/null; then
+            echo "Error: SSH tunnel opened but agent is not responding on VPS port 8080" >&2
+            exit 1
+        fi
+        HOST="http://localhost:$TUNNEL_PORT"
+    fi
+fi
 
 # Read question from args or stdin
 if [ $# -gt 0 ]; then
