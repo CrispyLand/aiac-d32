@@ -339,6 +339,18 @@ rag:
   evaluation:
     enabled: false              # GET /rag/evaluate is disabled unless true
 
+devagent:
+  enabled: false
+  project-root: ${DEVAGENT_PROJECT_ROOT:}
+  max-rounds: 15
+  max-read-tokens: 50000
+  allowed-write-paths:
+    - "README.md"
+    - "CLAUDE.md"
+    - "CHANGELOG.md"
+    - "docs/**"
+    - "support-docs/**"
+
 logging:
   level:
     com.crispyland: INFO
