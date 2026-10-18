@@ -64,12 +64,13 @@
         :root.light .rag-answer .rag-sources .src-file { color: #2563eb; }
         :root.light .rag-answer .rag-quote { border-left-color: #818cf8; background: #eef2ff; color: #4338ca; }
         /* Theme toggle button */
-        .theme-toggle {
+        .theme-toggle, .header-link {
             background: transparent; border: 1px solid var(--line); color: var(--muted);
             border-radius: 7px; padding: 5px 10px; font-size: 13px; cursor: pointer;
-            margin-left: auto;
+            text-decoration: none;
         }
-        .theme-toggle:hover { color: var(--ink); border-color: var(--muted); }
+        .theme-toggle { margin-left: auto; }
+        .theme-toggle:hover, .header-link:hover { color: var(--ink); border-color: var(--muted); }
         .header-row { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
         * { box-sizing: border-box; }
         body {
@@ -535,6 +536,8 @@
 <div class="wrap">
     <div class="header-row">
         <h1>Agent Chat</h1>
+        <a href="/report-problem" class="header-link">Report a Problem</a>
+        <a href="/support" class="header-link">Support</a>
         <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">&#9788; Light</button>
     </div>
     <div class="sub">Spring Boot &rarr; <code>com.crispyland.agent</code> &rarr;
