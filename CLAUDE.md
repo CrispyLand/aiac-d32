@@ -123,6 +123,7 @@ Tools exposed by the MCP servers:
 - `saveToFile` still not guaranteed to fire — model sometimes stops after `summarize`; may need stronger enforcement
 - Incremental RAG reindex on deploy — use `git diff --name-only` to find changed files and call `mergeDocument()` for each, instead of re-embedding the whole codebase
 - Multi-project support — namespaced RAG indexes per project, CLI detects project from working directory, web chat needs a project selector
+- Support console: persist assistant responses as ticket messages via `addMessage()` so analysis survives ticket switching and is visible to other agents
 
 ---
 
