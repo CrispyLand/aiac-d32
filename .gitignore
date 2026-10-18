@@ -53,3 +53,6 @@ token.json
 
 ### Google OAuth token cache — grants calendar access, never commit
 .google-tokens/
+
+### devagent run logs — local-only, regenerated on each run
+.devagent/

@@ -1,0 +1,5 @@
+# Local-only profile that enables the devagent file assistant.
+# Activate with: SPRING_PROFILES_ACTIVE=devagent
+# Set DEVAGENT_PROJECT_ROOT to the project directory you want to work on.
+devagent:
+  enabled: true

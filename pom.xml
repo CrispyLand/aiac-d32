@@ -89,6 +89,13 @@
 			<version>3.0.3</version>
 		</dependency>
 
+		<!-- Unified diff generation for devagent file edits -->
+		<dependency>
+			<groupId>io.github.java-diff-utils</groupId>
+			<artifactId>java-diff-utils</artifactId>
+			<version>4.12</version>
+		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-thymeleaf-test</artifactId>
