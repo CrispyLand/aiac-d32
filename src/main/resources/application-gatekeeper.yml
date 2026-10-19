@@ -1,0 +1,4 @@
+gatekeeper:
+  enabled: true
+  teacher-secret: teacher123
+  internal-token: ${GATEKEEPER_INTERNAL_TOKEN:gk-internal-dev}

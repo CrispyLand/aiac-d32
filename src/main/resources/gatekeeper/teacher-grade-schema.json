@@ -1,0 +1,27 @@
+{
+  "type": "object",
+  "properties": {
+    "suggestedGrade": {"type": "string"},
+    "confidence": {"type": "string", "enum": ["high", "moderate", "low"]},
+    "perStandard": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "standard": {"type": "string"},
+          "justification": {"type": "string"},
+          "evidence": {"type": "string"},
+          "grade": {"type": "string"}
+        },
+        "required": ["standard", "justification", "evidence", "grade"],
+        "additionalProperties": false
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "items": {"type": "string"}
+    }
+  },
+  "required": ["suggestedGrade", "confidence", "perStandard", "limitations"],
+  "additionalProperties": false
+}

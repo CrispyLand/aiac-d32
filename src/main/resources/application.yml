@@ -3,8 +3,8 @@ spring:
     name: agent-chat
   servlet:
     multipart:
-      max-file-size: 10MB
-      max-request-size: 10MB
+      max-file-size: 100MB
+      max-request-size: 100MB
   thymeleaf:
     cache: false
 
@@ -338,6 +338,18 @@ rag:
     model: gpt-oss-120b
   evaluation:
     enabled: false              # GET /rag/evaluate is disabled unless true
+
+gatekeeper:
+  enabled: false
+  locale: "Adelaide, South Australia"
+  data-dir: ./data/gatekeeper
+  access-code: ${GATEKEEPER_ACCESS_CODE:}
+  teacher-secret: ${GATEKEEPER_TEACHER_SECRET:}
+  internal-token: ${GATEKEEPER_INTERNAL_TOKEN:gk-internal-dev}
+  chat-rate-per-minute: 10
+  submit-rate-per-minute: 3
+  paste-rate-per-minute: 5
+  log-paste-excerpt: false
 
 devagent:
   enabled: false

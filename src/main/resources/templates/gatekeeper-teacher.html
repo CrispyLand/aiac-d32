@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Gatekeeper — Teacher Dashboard</title>
+    <style>
+        :root {
+            --bg: #0f172a; --card: #1e293b; --line: #334155; --ink: #e2e8f0;
+            --muted: #94a3b8; --accent: #3b82f6; --green: #22c55e; --red: #ef4444;
+            --orange: #f59e0b; --purple: #a78bfa;
+        }
+        :root.light {
+            --bg: #f8fafc; --card: #ffffff; --line: #e2e8f0; --ink: #1e293b;
+            --muted: #64748b; --accent: #2563eb; --green: #16a34a; --red: #dc2626;
+            --orange: #d97706; --purple: #7c3aed;
+        }
+        :root.light input, :root.light select, :root.light textarea { background: #fff; border-color: #cbd5e1; }
+        * { box-sizing: border-box; }
+        body { margin:0; padding:24px 20px 64px; background:var(--bg); color:var(--ink);
+            font: 14px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        .wrap { max-width:1200px; margin:0 auto; }
+        h1 { font-size:22px; margin:0 0 4px; }
+        h2 { font-size:17px; margin:0 0 12px; }
+        h3 { font-size:15px; margin:0 0 8px; }
+        .sub { color:var(--muted); font-size:13px; margin-bottom:20px; }
+        .header-row { display:flex; align-items:center; gap:12px; margin-bottom:4px; }
+        .header-link, .theme-toggle {
+            background:transparent; border:1px solid var(--line); color:var(--muted);
+            border-radius:7px; padding:5px 10px; font-size:13px; cursor:pointer; text-decoration:none; }
+        .theme-toggle { margin-left:auto; }
+        .header-link:hover, .theme-toggle:hover { color:var(--ink); border-color:var(--muted); }
+
+        /* Auth */
+        .auth-bar { display:flex; gap:8px; align-items:center; margin-bottom:20px; }
+        .auth-bar input { padding:8px 12px; border:1px solid var(--line); border-radius:7px;
+            background:var(--card); color:var(--ink); font-size:13px; width:280px; }
+        .btn { padding:8px 16px; border:none; border-radius:7px; font-size:13px; font-weight:600;
+            cursor:pointer; transition:opacity .15s; }
+        .btn:hover { opacity:.85; } .btn:disabled { opacity:.4; cursor:not-allowed; }
+        .btn-primary { background:var(--accent); color:#fff; }
+        .btn-green { background:var(--green); color:#fff; }
+        .btn-outline { background:transparent; border:1px solid var(--line); color:var(--muted); }
+        .btn-sm { padding:5px 10px; font-size:12px; }
+
+        /* Filters */
+        .filter-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
+        .filter-row select, .filter-row input {
+            padding:6px 10px; border:1px solid var(--line); border-radius:6px;
+            background:var(--card); color:var(--ink); font-size:13px; }
+
+        /* Table */
+        .tbl { width:100%; border-collapse:collapse; font-size:13px; }
+        .tbl th { text-align:left; padding:8px 10px; border-bottom:2px solid var(--line);
+            color:var(--muted); font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:.5px; }
+        .tbl td { padding:8px 10px; border-bottom:1px solid var(--line); }
+        .tbl tr:hover td { background:rgba(59,130,246,0.05); }
+        .tbl tr { cursor:pointer; }
+
+        /* Badges */
+        .badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; }
+        .badge-green { background:rgba(34,197,94,.15); color:var(--green); }
+        .badge-blue { background:rgba(59,130,246,.15); color:var(--accent); }
+        .badge-red { background:rgba(239,68,68,.15); color:var(--red); }
+        .badge-orange { background:rgba(245,158,11,.15); color:var(--orange); }
+        .badge-purple { background:rgba(167,139,250,.15); color:var(--purple); }
+        .badge-muted { background:rgba(148,163,184,.1); color:var(--muted); }
+
+        /* Cards */
+        .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px; margin-bottom:16px; }
+
+        /* Detail view */
+        .detail-header { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:16px; }
+        .detail-stat { text-align:center; }
+        .detail-stat .val { font-size:24px; font-weight:700; }
+        .detail-stat .lbl { font-size:11px; color:var(--muted); text-transform:uppercase; }
+
+        /* Timeline */
+        .timeline { max-height:500px; overflow-y:auto; }
+        .evt { padding:8px 12px; border-left:3px solid var(--line); margin-bottom:4px; font-size:13px; }
+        .evt .evt-head { display:flex; gap:8px; align-items:center; margin-bottom:2px; }
+        .evt .evt-time { color:var(--muted); font-size:11px; }
+        .evt .evt-type { font-weight:600; font-size:12px; }
+        .evt.student { border-left-color:var(--accent); }
+        .evt.tutor { border-left-color:var(--green); }
+        .evt.judge { border-left-color:var(--orange); }
+        .evt.guard { border-left-color:var(--purple); }
+        .evt.integrity { border-left-color:var(--red); }
+        .evt.gate { border-left-color:var(--green); }
+        .evt.gate-fail { border-left-color:var(--red); }
+        .evt.system-evt { border-left-color:var(--muted); }
+        .evt .evt-body { color:var(--ink); white-space:pre-wrap; word-break:break-word; }
+        .evt .evt-meta { color:var(--muted); font-size:11px; margin-top:2px; }
+
+        /* Analysis panel */
+        .analysis-section { margin-top:16px; }
+        .analysis-item { margin-bottom:12px; }
+        .analysis-item h4 { margin:0 0 4px; font-size:13px; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; }
+        .evidence-cite { font-size:11px; color:var(--muted); margin-left:8px; }
+        .evidence-tag { display:inline-block; padding:1px 6px; border-radius:4px; font-size:10px;
+            background:rgba(59,130,246,.1); color:var(--accent); margin-left:4px; }
+
+        /* Grade */
+        .grade-box { text-align:center; padding:24px; }
+        .grade-letter { font-size:48px; font-weight:800; color:var(--accent); }
+        .grade-label { font-size:12px; color:var(--muted); margin-top:4px; }
+        .grade-warning { color:var(--orange); font-size:13px; text-align:center; padding:16px; }
+
+        /* Decision form */
+        .decision-form { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:12px; }
+        .decision-form select, .decision-form input, .decision-form textarea {
+            padding:6px 10px; border:1px solid var(--line); border-radius:6px;
+            background:var(--card); color:var(--ink); font:inherit; }
+        .decision-form textarea { min-height:60px; resize:vertical; width:100%; }
+
+        /* Teacher Assistant panel */
+        .assistant-panel { position:fixed; right:0; top:0; width:420px; height:100vh;
+            background:var(--card); border-left:1px solid var(--line); display:flex; flex-direction:column;
+            z-index:100; transform:translateX(100%); transition:transform .25s ease; }
+        .assistant-panel.open { transform:translateX(0); }
+        .assistant-header { padding:12px 16px; border-bottom:1px solid var(--line); display:flex;
+            align-items:center; justify-content:space-between; flex-shrink:0; }
+        .assistant-header h3 { margin:0; font-size:15px; }
+        .assistant-close { background:none; border:none; color:var(--muted); cursor:pointer; font-size:18px; padding:4px 8px; }
+        .assistant-close:hover { color:var(--ink); }
+        .assistant-messages { flex:1; overflow-y:auto; padding:12px 16px; }
+        .assistant-msg { margin-bottom:12px; }
+        .assistant-msg.user { text-align:right; }
+        .assistant-msg .msg-bubble { display:inline-block; max-width:90%; padding:8px 12px;
+            border-radius:10px; font-size:13px; line-height:1.5; text-align:left; white-space:pre-wrap; word-break:break-word; }
+        .assistant-msg.user .msg-bubble { background:var(--accent); color:#fff; }
+        .assistant-msg.assistant .msg-bubble { background:rgba(148,163,184,.1); color:var(--ink); }
+        .assistant-tool-trace { margin:4px 0 8px; }
+        .tool-call { padding:6px 10px; border-left:2px solid var(--purple); margin-bottom:4px;
+            font-size:11px; background:rgba(167,139,250,.05); border-radius:0 6px 6px 0; }
+        .tool-call .tool-name { font-weight:600; color:var(--purple); }
+        .tool-call .tool-args { color:var(--muted); margin-left:4px; }
+        .tool-call .tool-result { color:var(--ink); margin-top:3px; max-height:80px; overflow-y:auto; font-size:11px; }
+        .assistant-input { padding:12px 16px; border-top:1px solid var(--line); display:flex; gap:8px; flex-shrink:0; }
+        .assistant-input textarea { flex:1; resize:none; padding:8px 12px; border:1px solid var(--line);
+            border-radius:8px; background:var(--bg); color:var(--ink); font:inherit; font-size:13px; min-height:40px; max-height:80px; }
+        .assistant-input button { flex-shrink:0; }
+        .assistant-toggle { position:fixed; bottom:20px; right:20px; width:50px; height:50px;
+            background:var(--purple); color:#fff; border:none; border-radius:50%; font-size:20px;
+            cursor:pointer; box-shadow:0 2px 10px rgba(0,0,0,.3); z-index:99; transition:transform .15s; }
+        .assistant-toggle:hover { transform:scale(1.1); }
+        .assistant-confirm-bar { padding:8px 16px; background:rgba(245,158,11,.1); border-top:1px solid var(--orange);
+            font-size:12px; display:flex; gap:8px; align-items:center; flex-shrink:0; }
+        .assistant-confirm-bar .confirm-text { flex:1; color:var(--orange); }
+
+        .hidden { display:none !important; }
+        .back-link { color:var(--accent); cursor:pointer; font-size:13px; margin-bottom:12px; display:inline-block; }
+        .back-link:hover { text-decoration:underline; }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <div class="header-row">
+        <h1>Gatekeeper — Teacher Dashboard</h1>
+        <a href="/gatekeeper" class="header-link">Student View</a>
+        <a href="/" class="header-link">Agent Chat</a>
+        <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">&#9788; Light</button>
+    </div>
+    <div class="sub">Monitor student progress, review AI analysis, manage grades</div>
+
+    <!-- Auth bar -->
+    <div class="auth-bar" id="authBar">
+        <input type="password" id="teacherSecret" placeholder="Teacher secret" autocomplete="off"/>
+        <button class="btn btn-primary" onclick="authenticate()">Authenticate</button>
+        <span id="authStatus" style="color:var(--muted);font-size:13px;"></span>
+    </div>
+
+    <!-- Class overview -->
+    <div id="overviewPanel" class="hidden">
+        <h2>Class Overview</h2>
+        <div class="filter-row">
+            <select id="filterStatus" onchange="renderTable()">
+                <option value="">All statuses</option>
+                <option value="in_progress">In progress</option>
+                <option value="complete">Complete</option>
+            </select>
+            <select id="filterGate" onchange="renderTable()">
+                <option value="">All gates</option>
+                <option value="0">Gate 0</option><option value="1">Gate 1</option>
+                <option value="2">Gate 2</option><option value="3">Gate 3</option>
+                <option value="4">Gate 4</option><option value="5">Gate 5</option>
+                <option value="6">Gate 6</option>
+            </select>
+            <select id="filterIntegrity" onchange="renderTable()">
+                <option value="">Any integrity</option>
+                <option value="has">Has signals</option>
+                <option value="none">No signals</option>
+            </select>
+            <select id="filterFailed" onchange="renderTable()">
+                <option value="">Any failures</option>
+                <option value="repeated">3+ failed submissions</option>
+            </select>
+        </div>
+        <table class="tbl" id="sessionsTable">
+            <thead>
+                <tr>
+                    <th>Student</th><th>Status</th><th>Gate</th><th>Passed</th>
+                    <th>Failed</th><th>Integrity</th><th>Pastes</th>
+                    <th>Last Activity</th><th>Attention</th>
+                </tr>
+            </thead>
+            <tbody id="sessionsBody"></tbody>
+        </table>
+    </div>
+
+    <!-- Student detail -->
+    <div id="detailPanel" class="hidden">
+        <span class="back-link" onclick="showOverview()">&larr; Back to overview</span>
+        <h2 id="detailTitle">Student Detail</h2>
+
+        <div class="detail-header card" id="detailHeader"></div>
+
+        <!-- Event filter tabs -->
+        <div class="filter-row">
+            <button class="btn btn-sm btn-outline" onclick="setEventFilter('all')">All events</button>
+            <button class="btn btn-sm btn-outline" onclick="setEventFilter('conversation')">Conversation</button>
+            <button class="btn btn-sm btn-outline" onclick="setEventFilter('gates')">Gate events</button>
+            <button class="btn btn-sm btn-outline" onclick="setEventFilter('judge')">Judge results</button>
+            <button class="btn btn-sm btn-outline" onclick="setEventFilter('integrity')">Integrity</button>
+        </div>
+
+        <!-- Timeline -->
+        <div class="card">
+            <h3>Event Timeline</h3>
+            <div class="timeline" id="timeline"></div>
+        </div>
+
+        <!-- Analysis -->
+        <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <h3>AI Progress Analysis</h3>
+                <div>
+                    <span id="analysisMeta" style="font-size:12px;color:var(--muted);margin-right:8px;"></span>
+                    <button class="btn btn-sm btn-primary" onclick="runAnalysis()" id="analyzeBtn">Generate Analysis</button>
+                </div>
+            </div>
+            <div id="analysisContent" class="analysis-section"></div>
+        </div>
+
+        <!-- Indicative grade -->
+        <div class="card">
+            <h3>Indicative Grade</h3>
+            <div style="font-size:11px;color:var(--orange);margin-bottom:8px;">
+                AI-suggested indicative grade — teacher decision required
+            </div>
+            <div id="gradeContent"></div>
+
+            <!-- Teacher decision form -->
+            <div id="decisionSection" class="hidden">
+                <hr style="border:none;border-top:1px solid var(--line);margin:16px 0;"/>
+                <h3>Teacher Decision</h3>
+                <div id="existingDecision" class="hidden" style="margin-bottom:12px;"></div>
+                <div class="decision-form">
+                    <select id="decisionType">
+                        <option value="">Select decision...</option>
+                        <option value="accept">Accept AI grade</option>
+                        <option value="override">Override grade</option>
+                        <option value="note">Add note only</option>
+                    </select>
+                    <input type="text" id="overrideGrade" placeholder="Override grade (e.g. B+)" style="width:120px;" class="hidden"/>
+                    <textarea id="decisionNote" placeholder="Teacher notes (optional)"></textarea>
+                    <button class="btn btn-green" onclick="submitDecision()">Record Decision</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Teacher Assistant toggle button -->
+<button class="assistant-toggle hidden" id="assistantToggle" onclick="toggleAssistant()" title="Teacher Assistant">&#9993;</button>
+
+<!-- Teacher Assistant panel -->
+<div class="assistant-panel" id="assistantPanel">
+    <div class="assistant-header">
+        <h3>Teacher Assistant</h3>
+        <button class="assistant-close" onclick="toggleAssistant()">&times;</button>
+    </div>
+    <div class="assistant-messages" id="assistantMessages">
+        <div class="assistant-msg assistant">
+            <div class="msg-bubble">Ask me about student progress, sessions, or transcripts. I can look up evidence from Gatekeeper sessions and compare final submissions.</div>
+        </div>
+    </div>
+    <div class="assistant-confirm-bar hidden" id="assistantConfirm">
+        <span class="confirm-text" id="confirmText"></span>
+        <button class="btn btn-sm btn-green" onclick="confirmTeacherNote()">Confirm</button>
+        <button class="btn btn-sm btn-outline" onclick="cancelConfirm()">Cancel</button>
+    </div>
+    <div class="assistant-input">
+        <textarea id="assistantInput" placeholder="Ask about student progress..." rows="1"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAssistant();}"></textarea>
+        <button class="btn btn-primary btn-sm" onclick="sendAssistant()" id="assistantSend">Send</button>
+    </div>
+</div>
+
+<script>
+    let teacherSecret = '';
+    let sessionsData = [];
+    let currentDetail = null;
+    let currentEvents = [];
+    let eventFilter = 'all';
+
+    // Theme
+    (function(){
+        if (localStorage.getItem('gk-theme') === 'light') document.documentElement.classList.add('light');
+    })();
+    function toggleTheme() {
+        document.documentElement.classList.toggle('light');
+        const l = document.documentElement.classList.contains('light');
+        localStorage.setItem('gk-theme', l ? 'light' : 'dark');
+        document.getElementById('themeToggle').innerHTML = l ? '&#9790; Dark' : '&#9788; Light';
+    }
+    if (document.documentElement.classList.contains('light'))
+        document.getElementById('themeToggle').innerHTML = '&#9790; Dark';
+
+    // Decision type toggle
+    document.getElementById('decisionType').addEventListener('change', function() {
+        document.getElementById('overrideGrade').classList.toggle('hidden', this.value !== 'override');
+    });
+
+    // Auth
+    async function authenticate() {
+        teacherSecret = document.getElementById('teacherSecret').value.trim();
+        if (!teacherSecret) return;
+        document.getElementById('authStatus').textContent = 'Authenticating...';
+        try {
+            const res = await apiFetch('/api/gatekeeper/teacher/sessions');
+            if (!res.ok) {
+                document.getElementById('authStatus').textContent = 'Invalid secret';
+                return;
+            }
+            sessionsData = await res.json();
+            document.getElementById('authStatus').textContent = '';
+            document.getElementById('authBar').style.display = 'none';
+            document.getElementById('overviewPanel').classList.remove('hidden');
+            renderTable();
+        } catch (e) {
+            document.getElementById('authStatus').textContent = 'Error';
+        }
+    }
+
+    function apiFetch(url, opts = {}) {
+        opts.headers = { ...opts.headers, 'X-Teacher-Secret': teacherSecret, 'Content-Type': 'application/json' };
+        return fetch(url, opts);
+    }
+
+    // Class overview table
+    function renderTable() {
+        const statusF = document.getElementById('filterStatus').value;
+        const gateF = document.getElementById('filterGate').value;
+        const intF = document.getElementById('filterIntegrity').value;
+        const failF = document.getElementById('filterFailed').value;
+
+        let rows = sessionsData.filter(s => {
+            if (statusF && s.status !== statusF) return false;
+            if (gateF !== '' && s.currentGate !== parseInt(gateF)) return false;
+            if (intF === 'has' && s.integritySignals === 0) return false;
+            if (intF === 'none' && s.integritySignals > 0) return false;
+            if (failF === 'repeated' && s.failedSubmissions < 3) return false;
+            return true;
+        });
+
+        const tbody = document.getElementById('sessionsBody');
+        tbody.innerHTML = '';
+        for (const s of rows) {
+            const tr = document.createElement('tr');
+            tr.onclick = () => openDetail(s.sessionId);
+            tr.innerHTML =
+                td(esc(s.studentId || 'unknown')) +
+                td(statusBadge(s.status)) +
+                td(s.currentGate + '/' + s.totalGates) +
+                td(s.passedGatesCount) +
+                td(s.failedSubmissions > 0 ? '<span style="color:var(--red)">' + s.failedSubmissions + '</span>' : '0') +
+                td(s.integritySignals > 0 ? '<span class="badge badge-red">' + s.integritySignals + '</span>' : '0') +
+                td(s.pasteAttempts) +
+                td(timeAgo(s.lastActivity)) +
+                td(attentionBadge(s.attentionStatus, s.hasAnalysis));
+            tbody.appendChild(tr);
+        }
+    }
+
+    function td(h) { return '<td>' + h + '</td>'; }
+    function esc(s) { const d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
+
+    function statusBadge(s) {
+        if (s === 'complete') return '<span class="badge badge-green">Complete</span>';
+        return '<span class="badge badge-blue">In Progress</span>';
+    }
+    function attentionBadge(status, hasAnalysis) {
+        if (!hasAnalysis) return '<span class="badge badge-muted">No analysis</span>';
+        const m = { on_track: ['badge-green','On Track'], needs_support: ['badge-orange','Needs Support'],
+            review_integrity: ['badge-red','Review'], insufficient_evidence: ['badge-muted','Insufficient'] };
+        const [cls, lbl] = m[status] || ['badge-muted', status || '?'];
+        return '<span class="badge ' + cls + '">' + lbl + '</span>';
+    }
+    function timeAgo(iso) {
+        if (!iso) return '-';
+        const d = new Date(iso);
+        const mins = Math.floor((Date.now() - d.getTime()) / 60000);
+        if (mins < 1) return 'just now';
+        if (mins < 60) return mins + 'm ago';
+        if (mins < 1440) return Math.floor(mins/60) + 'h ago';
+        return Math.floor(mins/1440) + 'd ago';
+    }
+
+    // Detail view
+    async function openDetail(sessionId) {
+        document.getElementById('overviewPanel').classList.add('hidden');
+        document.getElementById('detailPanel').classList.remove('hidden');
+
+        try {
+            const res = await apiFetch('/api/gatekeeper/teacher/session/' + sessionId);
+            if (!res.ok) { alert('Failed to load session'); return; }
+            currentDetail = await res.json();
+            currentEvents = currentDetail.events || [];
+            renderDetail();
+        } catch (e) { alert('Error loading session'); }
+    }
+
+    function showOverview() {
+        document.getElementById('detailPanel').classList.add('hidden');
+        document.getElementById('overviewPanel').classList.remove('hidden');
+        // Refresh data
+        apiFetch('/api/gatekeeper/teacher/sessions').then(r => r.json()).then(d => { sessionsData = d; renderTable(); });
+    }
+
+    function renderDetail() {
+        const d = currentDetail;
+        document.getElementById('detailTitle').textContent = 'Student: ' + (d.studentId || 'unknown');
+
+        // Header stats
+        const hdr = document.getElementById('detailHeader');
+        hdr.innerHTML =
+            stat(d.currentGate + '/' + d.totalGates, 'Gate') +
+            stat((d.passedGates||[]).length, 'Passed') +
+            stat(d.status === 'complete' ? 'Complete' : 'In Progress', 'Status') +
+            stat(d.hashChainValid ? 'Valid' : 'BROKEN', 'Hash Chain') +
+            stat(timeAgo(d.lastActivity), 'Last Active') +
+            stat(timeAgo(d.createdAt), 'Started');
+
+        renderTimeline();
+        renderAnalysis();
+        renderGrade();
+    }
+
+    function stat(val, lbl) {
+        return '<div class="detail-stat"><div class="val">' + esc(String(val)) + '</div><div class="lbl">' + esc(lbl) + '</div></div>';
+    }
+
+    // Timeline
+    function setEventFilter(f) { eventFilter = f; renderTimeline(); }
+
+    function renderTimeline() {
+        const tl = document.getElementById('timeline');
+        tl.innerHTML = '';
+        const filtered = currentEvents.filter(e => {
+            if (eventFilter === 'all') return true;
+            if (eventFilter === 'conversation')
+                return ['STUDENT_MESSAGE','TUTOR_MESSAGE'].includes(e.type);
+            if (eventFilter === 'gates')
+                return ['GATE_SUBMITTED','GATE_UNLOCKED','GATE_FAILED'].includes(e.type);
+            if (eventFilter === 'judge')
+                return ['JUDGE_RESULT','GATE_SUBMITTED','GATE_UNLOCKED','GATE_FAILED'].includes(e.type);
+            if (eventFilter === 'integrity')
+                return ['STUDENT_INTEGRITY_SIGNAL','PASTE_ATTEMPT','GUARD_DECISION'].includes(e.type);
+            return true;
+        });
+
+        for (const evt of filtered) {
+            const div = document.createElement('div');
+            div.className = 'evt ' + evtClass(evt.type);
+
+            const p = evt.payload || {};
+            let body = '';
+            let meta = 'seq=' + evt.seq + ' id=' + evt.eventId + ' gate=' + evt.gate;
+
+            switch (evt.type) {
+                case 'STUDENT_MESSAGE': body = p.content || ''; break;
+                case 'TUTOR_MESSAGE': body = (p.source === 'scripted' ? '[scripted] ' : '') + (p.content || ''); break;
+                case 'JUDGE_RESULT':
+                    body = 'met=' + p.met + ' missing=[' + (p.missing||[]).join(', ') + ']\n';
+                    if (p.criteria) {
+                        for (const [k,v] of Object.entries(p.criteria)) {
+                            body += '  ' + k + ': ' + (v.met?'PASS':'FAIL') + ' — ' + (v.evidence||'(none)') + '\n';
+                        }
+                    }
+                    if (p.next_focus) body += 'next_focus: ' + p.next_focus;
+                    if (p.teacher_note) body += '\nteacher_note: ' + p.teacher_note;
+                    break;
+                case 'GUARD_DECISION':
+                    body = 'passed=' + p.passed + ' action=' + (p.action||'') + '\nreason: ' + (p.reason||''); break;
+                case 'STUDENT_INTEGRITY_SIGNAL':
+                    body = (p.signals||[]).map(s => s.signalType + ' (conf=' + s.confidence + ')').join(', '); break;
+                case 'PASTE_ATTEMPT':
+                    body = 'length=' + (p.pasteLength||0); break;
+                case 'GATE_SUBMITTED':
+                    body = 'words=' + (p.wordCount||0); break;
+                case 'GATE_UNLOCKED':
+                    body = 'Gate ' + (p.gate??'') + ' unlocked'; break;
+                case 'GATE_FAILED':
+                    body = 'reason: ' + (p.reason||''); break;
+                case 'TEACHER_ANALYSIS_GENERATED':
+                    body = 'Analysis generated (seq covered: ' + (p.lastSeqCovered||'?') + ')'; break;
+                case 'TEACHER_DECISION':
+                    body = 'Decision: ' + (p.decision||'') + (p.overrideGrade ? ' → ' + p.overrideGrade : ''); break;
+                default:
+                    body = JSON.stringify(p).substring(0, 200);
+            }
+
+            const ts = evt.timestamp ? evt.timestamp.substring(0, 19).replace('T', ' ') : '';
+            div.innerHTML =
+                '<div class="evt-head"><span class="evt-type">' + esc(evt.type) + '</span><span class="evt-time">' + esc(ts) + '</span></div>' +
+                '<div class="evt-body">' + esc(body) + '</div>' +
+                '<div class="evt-meta">' + esc(meta) + '</div>';
+            tl.appendChild(div);
+        }
+    }
+
+    function evtClass(type) {
+        const m = { STUDENT_MESSAGE:'student', TUTOR_MESSAGE:'tutor', JUDGE_RESULT:'judge',
+            GUARD_DECISION:'guard', STUDENT_INTEGRITY_SIGNAL:'integrity', PASTE_ATTEMPT:'integrity',
+            GATE_UNLOCKED:'gate', GATE_FAILED:'gate-fail', GATE_SUBMITTED:'gate' };
+        return m[type] || 'system-evt';
+    }
+
+    // Analysis
+    function renderAnalysis() {
+        const el = document.getElementById('analysisContent');
+        const meta = document.getElementById('analysisMeta');
+
+        if (!currentDetail.analysis) {
+            el.innerHTML = '<p style="color:var(--muted)">No analysis generated yet. Click "Generate Analysis" to create one.</p>';
+            meta.textContent = '';
+            document.getElementById('analyzeBtn').textContent = 'Generate Analysis';
+            return;
+        }
+
+        const a = currentDetail.analysis.analysis || currentDetail.analysis;
+        const sinceAnalysis = currentDetail.eventsSinceAnalysis || 0;
+        meta.textContent = sinceAnalysis > 0 ? sinceAnalysis + ' new events since last analysis' : 'Up to date';
+        document.getElementById('analyzeBtn').textContent = sinceAnalysis > 0 ? 'Refresh Analysis' : 'Regenerate';
+
+        let html = '';
+
+        // Attention status
+        if (a.attentionStatus) {
+            html += '<div style="margin-bottom:12px;">' + attentionBadge(a.attentionStatus, true) + '</div>';
+        }
+
+        // Progress summary
+        if (a.progressSummary) {
+            html += '<div class="analysis-item"><h4>Progress Summary</h4><p>' + esc(a.progressSummary) + '</p></div>';
+        }
+
+        // Demonstrated understanding
+        if (a.demonstratedUnderstanding && a.demonstratedUnderstanding.length) {
+            html += '<div class="analysis-item"><h4>Demonstrated Understanding</h4><ul>';
+            for (const item of a.demonstratedUnderstanding) {
+                html += '<li>' + esc(item.claim) +
+                    '<span class="evidence-tag">' + esc(item.evidenceType) + '</span>' +
+                    '<span class="evidence-cite">gate ' + item.gate + ' — "' + esc(item.studentQuote) + '"</span></li>';
+            }
+            html += '</ul></div>';
+        }
+
+        // Knowledge gaps
+        if (a.knowledgeGaps && a.knowledgeGaps.length) {
+            html += '<div class="analysis-item"><h4>Knowledge Gaps</h4><ul>';
+            for (const item of a.knowledgeGaps) {
+                html += '<li>' + esc(item.gap) +
+                    '<span class="evidence-tag">' + esc(item.evidenceType) + '</span>' +
+                    '<span class="evidence-cite">gate ' + item.gate + ' — "' + esc(item.studentQuote) + '"</span></li>';
+            }
+            html += '</ul></div>';
+        }
+
+        // Misconceptions
+        if (a.misconceptions && a.misconceptions.length) {
+            html += '<div class="analysis-item"><h4>Misconceptions</h4><ul>';
+            for (const item of a.misconceptions) {
+                html += '<li>' + esc(item.misconception) +
+                    '<span class="evidence-tag">' + esc(item.evidenceType) + '</span>' +
+                    '<span class="evidence-cite">"' + esc(item.studentQuote) + '"</span></li>';
+            }
+            html += '</ul></div>';
+        }
+
+        // Teacher suggestions
+        if (a.teacherSuggestions && a.teacherSuggestions.length) {
+            html += '<div class="analysis-item"><h4>Suggestions for Teacher</h4><ul>';
+            for (const s of a.teacherSuggestions) html += '<li>' + esc(s) + '</li>';
+            html += '</ul></div>';
+        }
+
+        // Integrity notes
+        if (a.integrityNotes && a.integrityNotes.length) {
+            html += '<div class="analysis-item"><h4>Integrity Notes</h4><ul>';
+            for (const n of a.integrityNotes) html += '<li style="color:var(--orange)">' + esc(n) + '</li>';
+            html += '</ul></div>';
+        }
+
+        el.innerHTML = html;
+    }
+
+    async function runAnalysis() {
+        if (!currentDetail) return;
+        document.getElementById('analyzeBtn').disabled = true;
+        document.getElementById('analyzeBtn').textContent = 'Analyzing...';
+        try {
+            const res = await apiFetch('/api/gatekeeper/teacher/analyze/' + currentDetail.sessionId, { method: 'POST' });
+            const data = await res.json();
+            if (!res.ok) { alert(data.error || 'Analysis failed'); return; }
+            currentDetail.analysis = data;
+            currentDetail.eventsSinceAnalysis = 0;
+            renderAnalysis();
+        } catch (e) { alert('Analysis error'); }
+        finally {
+            document.getElementById('analyzeBtn').disabled = false;
+        }
+    }
+
+    // Grade
+    function renderGrade() {
+        const el = document.getElementById('gradeContent');
+        const decSec = document.getElementById('decisionSection');
+
+        if (!currentDetail.gradeAvailable) {
+            el.innerHTML = '<div class="grade-warning">' + esc(currentDetail.gradeUnavailableReason || 'Grade not available') + '</div>';
+            decSec.classList.add('hidden');
+            return;
+        }
+
+        // Check if grade already generated in analysis events
+        const gradeEvt = currentEvents.filter(e => e.type === 'TEACHER_ANALYSIS_GENERATED' && e.payload && e.payload.grade).pop();
+
+        el.innerHTML = '<button class="btn btn-primary" onclick="generateGrade()">Generate Indicative Grade</button>';
+        decSec.classList.remove('hidden');
+
+        // Show existing teacher decision
+        if (currentDetail.teacherDecision) {
+            const td = currentDetail.teacherDecision;
+            document.getElementById('existingDecision').classList.remove('hidden');
+            document.getElementById('existingDecision').innerHTML =
+                '<div class="badge badge-green">Previous decision: ' + esc(td.decision) +
+                (td.overrideGrade ? ' → ' + esc(td.overrideGrade) : '') + '</div>' +
+                (td.note ? '<p style="font-size:13px;color:var(--muted);margin-top:4px;">' + esc(td.note) + '</p>' : '');
+        }
+    }
+
+    async function generateGrade() {
+        if (!currentDetail) return;
+        const el = document.getElementById('gradeContent');
+        el.innerHTML = '<p style="color:var(--muted)">Generating indicative grade...</p>';
+        try {
+            const res = await apiFetch('/api/gatekeeper/teacher/grade/' + currentDetail.sessionId, { method: 'POST' });
+            const data = await res.json();
+            if (!res.ok) { el.innerHTML = '<div class="grade-warning">' + esc(data.error || 'Grade generation failed') + '</div>'; return; }
+
+            let html = '<div class="grade-box"><div class="grade-letter">' + esc(data.suggestedGrade) + '</div>' +
+                '<div class="grade-label">AI-suggested indicative grade — teacher decision required</div>' +
+                '<div class="badge badge-' + (data.confidence === 'high' ? 'green' : data.confidence === 'moderate' ? 'orange' : 'red') + '">' +
+                esc(data.confidence) + ' confidence</div></div>';
+
+            if (data.perStandard && data.perStandard.length) {
+                html += '<h4 style="margin-top:16px;">Per-Standard Breakdown</h4>';
+                for (const ps of data.perStandard) {
+                    html += '<div style="margin-bottom:8px;padding:8px;border-left:3px solid var(--accent);">' +
+                        '<strong>' + esc(ps.standard) + ': ' + esc(ps.grade) + '</strong><br/>' +
+                        '<span style="font-size:13px;">' + esc(ps.justification) + '</span><br/>' +
+                        '<span style="font-size:12px;color:var(--muted);">Evidence: ' + esc(ps.evidence) + '</span></div>';
+                }
+            }
+            if (data.limitations && data.limitations.length) {
+                html += '<h4 style="margin-top:12px;">Limitations</h4><ul>';
+                for (const l of data.limitations) html += '<li style="font-size:13px;color:var(--orange)">' + esc(l) + '</li>';
+                html += '</ul>';
+            }
+            el.innerHTML = html;
+        } catch (e) { el.innerHTML = '<div class="grade-warning">Error generating grade</div>'; }
+    }
+
+    async function submitDecision() {
+        if (!currentDetail) return;
+        const decision = document.getElementById('decisionType').value;
+        if (!decision) { alert('Select a decision type'); return; }
+        const overrideGrade = document.getElementById('overrideGrade').value.trim();
+        const note = document.getElementById('decisionNote').value.trim();
+
+        try {
+            const res = await apiFetch('/api/gatekeeper/teacher/decision/' + currentDetail.sessionId, {
+                method: 'POST',
+                body: JSON.stringify({ decision, overrideGrade, note })
+            });
+            const data = await res.json();
+            if (!res.ok) { alert(data.error || 'Failed to record decision'); return; }
+            alert('Decision recorded');
+            openDetail(currentDetail.sessionId);
+        } catch (e) { alert('Error recording decision'); }
+    }
+
+    // ─── Teacher Assistant ──────────────────────────────────────────────
+
+    let assistantHistory = [];
+    let pendingConfirm = null;
+
+    // Show toggle after auth
+    const origAuth = authenticate;
+    authenticate = async function() {
+        await origAuth();
+        if (teacherSecret) document.getElementById('assistantToggle').classList.remove('hidden');
+    };
+
+    function toggleAssistant() {
+        document.getElementById('assistantPanel').classList.toggle('open');
+    }
+
+    async function sendAssistant() {
+        const input = document.getElementById('assistantInput');
+        const question = input.value.trim();
+        if (!question) return;
+        input.value = '';
+
+        // Add user message
+        addAssistantMsg('user', question);
+
+        // Disable send
+        const btn = document.getElementById('assistantSend');
+        btn.disabled = true;
+        btn.textContent = '...';
+
+        try {
+            const res = await apiFetch('/api/gatekeeper/teacher/assistant/chat', {
+                method: 'POST',
+                body: JSON.stringify({ question, history: assistantHistory })
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                addAssistantMsg('assistant', 'Error: ' + (data.error || 'Request failed'));
+                return;
+            }
+
+            // Show tool trace
+            if (data.toolTrace && data.toolTrace.length > 0) {
+                addToolTrace(data.toolTrace);
+            }
+
+            // Show answer
+            const answer = data.answer || '(no answer)';
+            addAssistantMsg('assistant', answer);
+
+            // Check if answer contains confirmation request
+            if (answer.includes('CONFIRMATION_REQUIRED')) {
+                showConfirmBar(answer);
+            }
+
+            // Update history for context
+            assistantHistory.push({ role: 'user', content: question });
+            assistantHistory.push({ role: 'assistant', content: answer });
+            // Keep history manageable
+            if (assistantHistory.length > 20) {
+                assistantHistory = assistantHistory.slice(-16);
+            }
+        } catch (e) {
+            addAssistantMsg('assistant', 'Network error: ' + e.message);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Send';
+        }
+    }
+
+    function addAssistantMsg(role, text) {
+        const container = document.getElementById('assistantMessages');
+        const div = document.createElement('div');
+        div.className = 'assistant-msg ' + role;
+        const bubble = document.createElement('div');
+        bubble.className = 'msg-bubble';
+        bubble.textContent = text;
+        div.appendChild(bubble);
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function addToolTrace(trace) {
+        const container = document.getElementById('assistantMessages');
+        const div = document.createElement('div');
+        div.className = 'assistant-tool-trace';
+        for (const t of trace) {
+            const call = document.createElement('div');
+            call.className = 'tool-call';
+            const argsStr = Object.entries(t.args || {})
+                .filter(([k,v]) => v != null)
+                .map(([k,v]) => k + '=' + (typeof v === 'string' && v.length > 60 ? v.substring(0,60) + '...' : v))
+                .join(', ');
+            call.innerHTML =
+                '<span class="tool-name">' + esc(t.tool) + '</span>' +
+                (argsStr ? '<span class="tool-args">(' + esc(argsStr) + ')</span>' : '') +
+                '<div class="tool-result">' + esc((t.result || '').substring(0, 300)) + '</div>';
+            div.appendChild(call);
+        }
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function showConfirmBar(text) {
+        pendingConfirm = text;
+        const bar = document.getElementById('assistantConfirm');
+        document.getElementById('confirmText').textContent = 'The assistant wants to add a teacher note. Confirm?';
+        bar.classList.remove('hidden');
+    }
+
+    function confirmTeacherNote() {
+        document.getElementById('assistantConfirm').classList.add('hidden');
+        // Send a follow-up message confirming
+        const input = document.getElementById('assistantInput');
+        input.value = 'Yes, confirm the teacher note.';
+        sendAssistant();
+        pendingConfirm = null;
+    }
+
+    function cancelConfirm() {
+        document.getElementById('assistantConfirm').classList.add('hidden');
+        addAssistantMsg('assistant', 'Teacher note cancelled.');
+        pendingConfirm = null;
+    }
+</script>
+</body>
+</html>

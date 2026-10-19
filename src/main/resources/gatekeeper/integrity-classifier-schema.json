@@ -1,0 +1,19 @@
+{
+  "type": "object",
+  "properties": {
+    "signals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "signal_type": {"type": "string", "enum": ["none", "write_request", "example_request", "teacher_override", "role_change", "ignore_rules", "translation_or_polishing_request"]},
+          "confidence": {"type": "number"}
+        },
+        "required": ["signal_type", "confidence"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["signals"],
+  "additionalProperties": false
+}
