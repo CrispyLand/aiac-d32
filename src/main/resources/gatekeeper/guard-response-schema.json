@@ -1,0 +1,9 @@
+{
+  "type": "object",
+  "properties": {
+    "contains_assessable_content": {"type": "boolean"},
+    "reason": {"type": "string"}
+  },
+  "required": ["contains_assessable_content", "reason"],
+  "additionalProperties": false
+}

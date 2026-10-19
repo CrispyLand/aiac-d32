@@ -1,0 +1,5 @@
+<conversation>
+{{conversation_with_roles_and_timestamps}}
+</conversation>
+<submitted_answer>{{submitted_answer}}</submitted_answer>
+<word_count>{{word_count}}</word_count>

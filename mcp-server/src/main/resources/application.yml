@@ -121,6 +121,11 @@ telegram:
   bot-token: ${TELEGRAM_BOT_TOKEN:}
   chat-id: ${TELEGRAM_CHAT_ID:}
 
+gatekeeper:
+  enabled: ${GATEKEEPER_ENABLED:false}
+  internal-url: ${GATEKEEPER_INTERNAL_URL:http://localhost:8080}
+  internal-token: ${GATEKEEPER_INTERNAL_TOKEN:gk-internal-dev}
+
 logging:
   level:
     # The handshake and tools/list exchange, so the terminal shows the client arriving.

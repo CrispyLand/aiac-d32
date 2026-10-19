@@ -1,0 +1,11 @@
+{
+  "type": "object",
+  "properties": {
+    "breakthroughs": {"type": "array", "items": {"type": "string"}},
+    "shallow_spots": {"type": "array", "items": {"type": "string"}},
+    "integrity_concerns": {"type": "array", "items": {"type": "string"}},
+    "summary": {"type": "string"}
+  },
+  "required": ["breakthroughs", "shallow_spots", "integrity_concerns", "summary"],
+  "additionalProperties": false
+}

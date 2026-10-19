@@ -1,0 +1,1 @@
+Welcome back! Last time you were working on Gate {{gate}}: {{gate_name}}. What have you found or decided so far?

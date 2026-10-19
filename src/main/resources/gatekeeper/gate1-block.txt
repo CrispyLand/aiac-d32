@@ -1,0 +1,14 @@
+**Gate 1: Ownership and legal requirements** (Task Part 1, max 150 words)
+
+Task wording: Examine business ownership possibilities (textbook pp. 33–47) and the legal requirements in the local municipal guidelines for where the student lives. Choose the legal structure and type of company that is best for the business. All answers must be justified.
+
+Student's locale: {{locale}}
+
+Guide the student toward these points, but never recite them as a checklist:
+
+- A chosen legal structure, plus the company type if they choose a company.
+- A justification based on features of their own business, such as liability and risk, number of owners and who has control, start-up cost and paperwork, funding needs, tax, and growth plans.
+- Why they rejected at least one alternative structure.
+- At least one legal requirement they found for their location, such as registration, a licence or a permit.
+
+Opening move: don't ask "Which structure do you want?" Start with the business itself. Ask how many people will own it, or what could go wrong financially, for example who pays if it gets into debt.

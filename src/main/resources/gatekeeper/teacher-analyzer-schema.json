@@ -1,0 +1,68 @@
+{
+  "type": "object",
+  "properties": {
+    "progressSummary": {"type": "string"},
+    "demonstratedUnderstanding": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "claim": {"type": "string"},
+          "evidenceType": {"type": "string", "enum": ["observed", "inferred"]},
+          "eventId": {"type": "string"},
+          "gate": {"type": "integer"},
+          "timestamp": {"type": "string"},
+          "studentQuote": {"type": "string"}
+        },
+        "required": ["claim", "evidenceType", "eventId", "gate", "timestamp", "studentQuote"],
+        "additionalProperties": false
+      }
+    },
+    "knowledgeGaps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "gap": {"type": "string"},
+          "evidenceType": {"type": "string", "enum": ["observed", "inferred"]},
+          "eventId": {"type": "string"},
+          "gate": {"type": "integer"},
+          "timestamp": {"type": "string"},
+          "studentQuote": {"type": "string"}
+        },
+        "required": ["gap", "evidenceType", "eventId", "gate", "timestamp", "studentQuote"],
+        "additionalProperties": false
+      }
+    },
+    "misconceptions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "misconception": {"type": "string"},
+          "evidenceType": {"type": "string", "enum": ["observed", "inferred"]},
+          "eventId": {"type": "string"},
+          "gate": {"type": "integer"},
+          "timestamp": {"type": "string"},
+          "studentQuote": {"type": "string"}
+        },
+        "required": ["misconception", "evidenceType", "eventId", "gate", "timestamp", "studentQuote"],
+        "additionalProperties": false
+      }
+    },
+    "teacherSuggestions": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "integrityNotes": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "attentionStatus": {
+      "type": "string",
+      "enum": ["on_track", "needs_support", "review_integrity", "insufficient_evidence"]
+    }
+  },
+  "required": ["progressSummary", "demonstratedUnderstanding", "knowledgeGaps", "misconceptions", "teacherSuggestions", "integrityNotes", "attentionStatus"],
+  "additionalProperties": false
+}

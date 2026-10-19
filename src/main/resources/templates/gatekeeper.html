@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Gatekeeper — AI Tutor</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --line: #334155;
+            --ink: #e2e8f0;
+            --muted: #94a3b8;
+            --accent: #3b82f6;
+            --green: #22c55e;
+            --red: #ef4444;
+            --orange: #f59e0b;
+        }
+        :root.light {
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --line: #e2e8f0;
+            --ink: #1e293b;
+            --muted: #64748b;
+            --accent: #2563eb;
+            --green: #16a34a;
+            --red: #dc2626;
+            --orange: #d97706;
+        }
+        :root.light textarea, :root.light input { background: #ffffff; border-color: #cbd5e1; }
+        :root.light .turn.student { background: #dbeafe; border-color: #93c5fd88; }
+        :root.light .turn.tutor { background: #f1f5f9; border-color: #e2e8f0; }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0; padding: 32px 20px 64px;
+            background: var(--bg); color: var(--ink);
+            font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        .wrap { max-width: 900px; margin: 0 auto; }
+        h1 { font-size: 22px; margin: 0 0 4px; }
+        .sub { color: var(--muted); font-size: 13px; margin-bottom: 24px; }
+        .theme-toggle, .header-link {
+            background: transparent; border: 1px solid var(--line); color: var(--muted);
+            border-radius: 7px; padding: 5px 10px; font-size: 13px; cursor: pointer;
+            text-decoration: none;
+        }
+        .theme-toggle { margin-left: auto; }
+        .theme-toggle:hover, .header-link:hover { color: var(--ink); border-color: var(--muted); }
+        .header-row { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
+
+        /* Access code modal */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .modal {
+            background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+            padding: 32px; max-width: 400px; width: 90%;
+        }
+        .modal h2 { margin: 0 0 16px; font-size: 18px; }
+        .modal input {
+            width: 100%; padding: 10px 14px; border: 1px solid var(--line);
+            border-radius: 8px; background: var(--card); color: var(--ink);
+            font-size: 15px; margin-bottom: 8px;
+        }
+        .modal .err { color: var(--red); font-size: 13px; margin-bottom: 8px; min-height: 18px; }
+
+        /* Gate path */
+        .gate-path {
+            display: flex; align-items: center; gap: 8px; margin-bottom: 24px;
+            padding: 16px; background: var(--card); border: 1px solid var(--line);
+            border-radius: 10px; overflow-x: auto;
+        }
+        .gate-dot {
+            width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--line);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px; font-weight: 600; flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+        .gate-dot.locked { opacity: 0.35; }
+        .gate-dot.current { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 8px rgba(59,130,246,0.4); }
+        .gate-dot.passed { background: var(--green); border-color: var(--green); color: #fff; }
+        .gate-connector { flex: 1; height: 2px; background: var(--line); min-width: 8px; }
+        .gate-connector.passed { background: var(--green); }
+
+        @keyframes gate-unlock {
+            0% { transform: scale(1); }
+            30% { transform: scale(1.5); box-shadow: 0 0 20px rgba(34,197,94,0.8); }
+            60% { transform: scale(1.1); }
+            100% { transform: scale(1); background: var(--green); border-color: var(--green); color: #fff; box-shadow: 0 0 0 transparent; }
+        }
+        .gate-dot.unlocking { animation: gate-unlock 0.8s ease forwards; }
+
+        /* Falling stars / particles */
+        .star-canvas {
+            position: fixed; inset: 0; pointer-events: none; z-index: 999;
+        }
+
+        /* Chat area */
+        .chat-panel {
+            background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+            display: flex; flex-direction: column; height: 55vh; margin-bottom: 16px;
+        }
+        .stream {
+            flex: 1; overflow-y: auto; padding: 16px;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .stream::-webkit-scrollbar { width: 6px; }
+        .stream::-webkit-scrollbar-track { background: var(--card); }
+        .stream::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+        .turn {
+            padding: 10px 14px; border-radius: 10px; font-size: 14px;
+            max-width: 85%; line-height: 1.55; white-space: pre-wrap; word-break: break-word;
+        }
+        .turn.student {
+            background: #1e3a5f; border: 1px solid #2563eb44;
+            align-self: flex-end; border-bottom-right-radius: 2px;
+        }
+        .turn.tutor {
+            background: var(--card); border: 1px solid var(--line);
+            align-self: flex-start; border-bottom-left-radius: 2px;
+        }
+        .turn .who { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+        .turn.system-msg {
+            background: transparent; border: 1px dashed var(--line);
+            align-self: center; text-align: center; color: var(--muted);
+            font-size: 13px; max-width: 100%;
+        }
+
+        /* Input row */
+        .input-row { display: flex; gap: 8px; }
+        .input-row textarea {
+            flex: 1; resize: none; padding: 10px 14px;
+            border: 1px solid var(--line); border-radius: 8px;
+            background: var(--card); color: var(--ink); font: inherit;
+            min-height: 44px; max-height: 120px;
+        }
+        .input-row textarea:focus { outline: none; border-color: var(--accent); }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 18px; border: none; border-radius: 8px;
+            font-size: 14px; font-weight: 600; cursor: pointer;
+            transition: opacity 0.15s;
+        }
+        .btn:hover { opacity: 0.85; }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn-primary { background: var(--accent); color: #fff; }
+        .btn-green { background: var(--green); color: #fff; }
+        .btn-outline {
+            background: transparent; border: 1px solid var(--line); color: var(--muted);
+        }
+
+        /* Answer box */
+        .answer-section {
+            background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+            padding: 16px; margin-bottom: 16px;
+        }
+        .answer-section h3 { margin: 0 0 8px; font-size: 15px; }
+        .answer-section textarea {
+            width: 100%; min-height: 100px; resize: vertical;
+            padding: 10px 14px; border: 1px solid var(--line); border-radius: 8px;
+            background: var(--card); color: var(--ink); font: inherit;
+        }
+        .answer-section textarea:focus { outline: none; border-color: var(--accent); }
+        .word-count { color: var(--muted); font-size: 13px; margin-top: 4px; }
+        .word-count.over { color: var(--red); font-weight: 600; }
+        .answer-row { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
+
+        /* Status messages */
+        .status-bar {
+            padding: 10px 16px; border-radius: 8px; font-size: 13px;
+            margin-bottom: 16px; display: none;
+        }
+        .status-bar.success { display: block; background: #052e16; border: 1px solid var(--green); color: var(--green); }
+        .status-bar.error { display: block; background: #450a0a; border: 1px solid var(--red); color: var(--red); }
+        :root.light .status-bar.success { background: #dcfce7; color: #166534; }
+        :root.light .status-bar.error { background: #fee2e2; color: #991b1b; }
+
+        /* Export buttons */
+        .export-row { display: flex; gap: 8px; margin-top: 16px; }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <div class="header-row">
+        <h1>Gatekeeper</h1>
+        <a href="/" class="header-link">Agent Chat</a>
+        <a href="/rag" class="header-link">RAG Indexer</a>
+        <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">&#9788; Light</button>
+    </div>
+    <div class="sub">SACE Stage 1 Business Innovation &mdash; Task 2: Starting a Business</div>
+
+    <!-- Access code modal -->
+    <div class="modal-overlay" id="accessModal">
+        <div class="modal">
+            <h2>Start Gatekeeper Session</h2>
+            <input type="text" id="studentIdInput" placeholder="Student ID or pseudonym" autocomplete="off"/>
+            <input type="password" id="accessCodeInput" placeholder="Access code (if required)" autocomplete="off"/>
+            <div class="err" id="modalError"></div>
+            <div style="display:flex;gap:8px;">
+                <button class="btn btn-primary" onclick="startSession()" id="startBtn">Start</button>
+                <button class="btn btn-outline" onclick="resumeSession()" id="resumeBtn">Resume Session</button>
+            </div>
+            <div style="margin-top:12px;font-size:12px;color:var(--muted);">
+                To resume, enter your session ID as "Student ID" and your access code.
+            </div>
+        </div>
+    </div>
+
+    <!-- Gate path -->
+    <div class="gate-path" id="gatePath"></div>
+
+    <!-- Status bar -->
+    <div class="status-bar" id="statusBar"></div>
+
+    <!-- Chat panel -->
+    <div class="chat-panel" id="chatPanel">
+        <div class="stream" id="stream"></div>
+    </div>
+
+    <!-- Chat input -->
+    <div class="input-row" id="chatInputRow">
+        <textarea id="chatInput" rows="1" placeholder="Ask your tutor a question..."
+                  onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat();}"
+                  oninput="autoGrow(this)"></textarea>
+        <button class="btn btn-primary" onclick="sendChat()" id="sendBtn">Send</button>
+    </div>
+
+    <!-- Answer submission box -->
+    <div class="answer-section" id="answerSection">
+        <h3 id="answerTitle">Your answer for Gate 0</h3>
+        <textarea id="answerInput" placeholder="Write your answer here..."
+                  oninput="updateWordCount()"></textarea>
+        <div class="word-count" id="wordCount">0 / ? words</div>
+        <div class="answer-row">
+            <button class="btn btn-green" onclick="submitAnswer()" id="submitBtn">Submit Answer</button>
+            <span id="submitStatus" style="font-size:13px;color:var(--muted);"></span>
+        </div>
+    </div>
+
+    <!-- Export row -->
+    <div class="export-row">
+        <button class="btn btn-outline" onclick="exportTranscript('json')">Export JSON</button>
+        <button class="btn btn-outline" onclick="exportTranscript('md')">Export Markdown</button>
+    </div>
+</div>
+
+<script>
+    // ── State ────────────────────────────────────────────────────────────
+    let sessionId = null;
+    let currentGate = 0;
+    let totalGates = 7;
+    let passedGates = [];
+    let maxWords = 80; // updated per gate
+    const gateMaxWords = [80, 150, 100, 150, 150, 150, 150]; // defaults per gate
+    const gateNames = [
+        'The idea', 'Ownership and legal', 'Name and location',
+        'Product', 'Influences', 'Risks and opportunities', 'New technology'
+    ];
+
+    // ── Theme ────────────────────────────────────────────────────────────
+    (function() {
+        const saved = localStorage.getItem('gk-theme');
+        if (saved === 'light') document.documentElement.classList.add('light');
+    })();
+
+    function toggleTheme() {
+        const r = document.documentElement;
+        r.classList.toggle('light');
+        const isLight = r.classList.contains('light');
+        localStorage.setItem('gk-theme', isLight ? 'light' : 'dark');
+        document.getElementById('themeToggle').innerHTML = isLight ? '&#9790; Dark' : '&#9788; Light';
+    }
+
+    // Sync button text on load
+    if (document.documentElement.classList.contains('light')) {
+        document.getElementById('themeToggle').innerHTML = '&#9790; Dark';
+    }
+
+    // ── Access modal ─────────────────────────────────────────────────────
+    // Check localStorage for existing session
+    const savedSession = localStorage.getItem('gk-session');
+    if (savedSession) {
+        document.getElementById('studentIdInput').value = savedSession;
+    }
+
+    async function startSession() {
+        const studentId = document.getElementById('studentIdInput').value.trim();
+        const accessCode = document.getElementById('accessCodeInput').value.trim();
+        const errEl = document.getElementById('modalError');
+        errEl.textContent = '';
+
+        if (!studentId) { errEl.textContent = 'Student ID is required'; return; }
+
+        document.getElementById('startBtn').disabled = true;
+        try {
+            const res = await fetch('/api/gatekeeper/start', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ studentId, accessCode })
+            });
+            const data = await res.json();
+            if (!res.ok) { errEl.textContent = data.error || 'Failed to start'; return; }
+
+            sessionId = data.sessionId;
+            currentGate = data.currentGate;
+            totalGates = data.totalGates;
+            localStorage.setItem('gk-session', sessionId);
+
+            document.getElementById('accessModal').classList.add('hidden');
+            renderGatePath();
+            addMessage('tutor', data.openingMessage);
+            updateAnswerSection();
+        } catch (e) {
+            errEl.textContent = 'Network error';
+        } finally {
+            document.getElementById('startBtn').disabled = false;
+        }
+    }
+
+    async function resumeSession() {
+        const sid = document.getElementById('studentIdInput').value.trim();
+        const accessCode = document.getElementById('accessCodeInput').value.trim();
+        const errEl = document.getElementById('modalError');
+        errEl.textContent = '';
+
+        if (!sid) { errEl.textContent = 'Enter your session ID to resume'; return; }
+
+        document.getElementById('resumeBtn').disabled = true;
+        try {
+            const res = await fetch('/api/gatekeeper/resume', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sessionId: sid, accessCode })
+            });
+            const data = await res.json();
+            if (!res.ok) { errEl.textContent = data.error || 'Failed to resume'; return; }
+
+            sessionId = data.sessionId;
+            currentGate = data.currentGate;
+            totalGates = data.totalGates;
+            passedGates = data.passedGates || [];
+            localStorage.setItem('gk-session', sessionId);
+
+            document.getElementById('accessModal').classList.add('hidden');
+            renderGatePath();
+
+            // Replay conversation history
+            if (data.conversation) {
+                for (const msg of data.conversation) {
+                    addMessage(msg.role === 'STUDENT' ? 'student' : 'tutor', msg.content);
+                }
+            }
+            updateAnswerSection();
+        } catch (e) {
+            errEl.textContent = 'Network error';
+        } finally {
+            document.getElementById('resumeBtn').disabled = false;
+        }
+    }
+
+    // ── Gate path ────────────────────────────────────────────────────────
+    function renderGatePath() {
+        const container = document.getElementById('gatePath');
+        container.innerHTML = '';
+        for (let i = 0; i < totalGates; i++) {
+            if (i > 0) {
+                const conn = document.createElement('div');
+                conn.className = 'gate-connector' + (passedGates.includes(i - 1) ? ' passed' : '');
+                container.appendChild(conn);
+            }
+            const dot = document.createElement('div');
+            dot.className = 'gate-dot';
+            dot.textContent = i;
+            dot.title = gateNames[i] || ('Gate ' + i);
+            if (passedGates.includes(i)) {
+                dot.classList.add('passed');
+            } else if (i === currentGate) {
+                dot.classList.add('current');
+            } else {
+                dot.classList.add('locked');
+            }
+            container.appendChild(dot);
+        }
+    }
+
+    function animateGateUnlock(gate) {
+        const dots = document.querySelectorAll('.gate-dot');
+        if (!dots[gate]) return;
+
+        dots[gate].classList.remove('current');
+        dots[gate].classList.add('unlocking');
+
+        // Spawn falling stars from the unlocked gate dot
+        spawnStars(dots[gate]);
+
+        setTimeout(() => {
+            dots[gate].classList.remove('unlocking');
+            dots[gate].classList.add('passed');
+            if (gate + 1 < totalGates) {
+                dots[gate + 1].classList.remove('locked');
+                dots[gate + 1].classList.add('current');
+            }
+        }, 800);
+    }
+
+    function spawnStars(originEl) {
+        const canvas = document.createElement('canvas');
+        canvas.className = 'star-canvas';
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        document.body.appendChild(canvas);
+        const ctx = canvas.getContext('2d');
+
+        const rect = originEl.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+
+        const particles = [];
+        const colors = ['#22c55e', '#4ade80', '#86efac', '#fbbf24', '#facc15', '#ffffff', '#a78bfa'];
+        const count = 60;
+
+        for (let i = 0; i < count; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 1.5 + Math.random() * 4;
+            particles.push({
+                x: cx, y: cy,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed - 2, // bias upward initially
+                gravity: 0.06 + Math.random() * 0.04,
+                size: 1.5 + Math.random() * 3,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                life: 1.0,
+                decay: 0.008 + Math.random() * 0.012,
+                trail: [],
+                spin: (Math.random() - 0.5) * 0.3
+            });
+        }
+
+        let frame;
+        function tick() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            let alive = false;
+
+            for (const p of particles) {
+                if (p.life <= 0) continue;
+                alive = true;
+
+                // Store trail
+                p.trail.push({ x: p.x, y: p.y, life: p.life });
+                if (p.trail.length > 6) p.trail.shift();
+
+                p.vy += p.gravity;
+                p.vx += p.spin * 0.01;
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= p.decay;
+
+                // Draw trail
+                for (let t = 0; t < p.trail.length; t++) {
+                    const tp = p.trail[t];
+                    const alpha = (t / p.trail.length) * tp.life * 0.4;
+                    ctx.beginPath();
+                    ctx.arc(tp.x, tp.y, p.size * 0.5 * (t / p.trail.length), 0, Math.PI * 2);
+                    ctx.fillStyle = p.color;
+                    ctx.globalAlpha = alpha;
+                    ctx.fill();
+                }
+
+                // Draw star
+                ctx.globalAlpha = p.life;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.fill();
+
+                // Glow
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size * 2.5, 0, Math.PI * 2);
+                const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 2.5);
+                grad.addColorStop(0, p.color);
+                grad.addColorStop(1, 'transparent');
+                ctx.fillStyle = grad;
+                ctx.globalAlpha = p.life * 0.3;
+                ctx.fill();
+            }
+
+            ctx.globalAlpha = 1;
+
+            if (alive) {
+                frame = requestAnimationFrame(tick);
+            } else {
+                canvas.remove();
+            }
+        }
+        frame = requestAnimationFrame(tick);
+
+        // Safety cleanup
+        setTimeout(() => { cancelAnimationFrame(frame); canvas.remove(); }, 4000);
+    }
+
+    // ── Chat ─────────────────────────────────────────────────────────────
+    function addMessage(role, content) {
+        const stream = document.getElementById('stream');
+        const div = document.createElement('div');
+        if (role === 'system') {
+            div.className = 'turn system-msg';
+            div.textContent = content;
+        } else {
+            div.className = 'turn ' + role;
+            const who = document.createElement('div');
+            who.className = 'who';
+            who.textContent = role === 'student' ? 'You' : 'Tutor';
+            div.appendChild(who);
+            const body = document.createElement('div');
+            body.textContent = content;
+            div.appendChild(body);
+        }
+        stream.appendChild(div);
+        stream.scrollTop = stream.scrollHeight;
+    }
+
+    async function sendChat() {
+        const input = document.getElementById('chatInput');
+        const message = input.value.trim();
+        if (!message || !sessionId) return;
+
+        addMessage('student', message);
+        input.value = '';
+        autoGrow(input);
+
+        document.getElementById('sendBtn').disabled = true;
+        try {
+            const res = await fetch('/api/gatekeeper/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sessionId, message })
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                showStatus(data.error || 'Chat failed', 'error');
+                return;
+            }
+            addMessage('tutor', data.response);
+        } catch (e) {
+            showStatus('Network error', 'error');
+        } finally {
+            document.getElementById('sendBtn').disabled = false;
+        }
+    }
+
+    function autoGrow(el) {
+        el.style.height = 'auto';
+        el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+    }
+
+    // ── Answer submission ────────────────────────────────────────────────
+    function updateAnswerSection() {
+        const title = document.getElementById('answerTitle');
+        const gateName = gateNames[currentGate] || ('Gate ' + currentGate);
+        title.textContent = 'Your answer for Gate ' + currentGate + ': ' + gateName;
+        maxWords = gateMaxWords[currentGate] || 150;
+        updateWordCount();
+    }
+
+    function countWords(text) {
+        if (!text || !text.trim()) return 0;
+        return text.trim().split(/\s+/).length;
+    }
+
+    function updateWordCount() {
+        const text = document.getElementById('answerInput').value;
+        const count = countWords(text);
+        const el = document.getElementById('wordCount');
+        el.textContent = count + ' / ' + maxWords + ' words';
+        el.className = 'word-count' + (count > maxWords ? ' over' : '');
+    }
+
+    async function submitAnswer() {
+        const answer = document.getElementById('answerInput').value.trim();
+        if (!answer || !sessionId) return;
+
+        const wc = countWords(answer);
+        if (wc > maxWords) {
+            showStatus('Answer is ' + wc + ' words, maximum is ' + maxWords, 'error');
+            return;
+        }
+
+        document.getElementById('submitBtn').disabled = true;
+        document.getElementById('submitStatus').textContent = 'Judging...';
+        try {
+            const res = await fetch('/api/gatekeeper/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sessionId, answer })
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                showStatus(data.error || 'Submit failed', 'error');
+                document.getElementById('submitStatus').textContent = '';
+                return;
+            }
+
+            if (data.passed) {
+                const oldGate = currentGate;
+                passedGates.push(currentGate);
+                currentGate = data.currentGate;
+
+                showStatus(data.message, 'success');
+                animateGateUnlock(oldGate);
+
+                // Show next gate opening message
+                if (data.openingMessage) {
+                    addMessage('tutor', data.openingMessage);
+                }
+
+                // Clear answer box and update for next gate
+                document.getElementById('answerInput').value = '';
+                updateAnswerSection();
+
+                // Re-render gate path after animation
+                setTimeout(() => renderGatePath(), 700);
+            } else {
+                showStatus(data.message, 'error');
+                addMessage('system', data.message + ' Keep discussing with the tutor.');
+            }
+            document.getElementById('submitStatus').textContent = '';
+        } catch (e) {
+            showStatus('Network error', 'error');
+            document.getElementById('submitStatus').textContent = '';
+        } finally {
+            document.getElementById('submitBtn').disabled = false;
+        }
+    }
+
+    // ── Paste blocking (disabled for testing) ─────────────────────────────
+    // document.getElementById('answerInput').addEventListener('paste', function(e) {
+    //     e.preventDefault();
+    //     showStatus('Pasting is not allowed in the answer box.', 'error');
+    //     const text = (e.clipboardData || window.clipboardData).getData('text');
+    //     if (sessionId) {
+    //         fetch('/api/gatekeeper/paste-log', {
+    //             method: 'POST',
+    //             headers: { 'Content-Type': 'application/json' },
+    //             body: JSON.stringify({ sessionId, gate: currentGate, content: text })
+    //         }).catch(() => {});
+    //     }
+    // });
+
+    // ── Export ────────────────────────────────────────────────────────────
+    async function exportTranscript(format) {
+        if (!sessionId) return;
+        try {
+            const res = await fetch('/api/gatekeeper/export', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sessionId })
+            });
+            const data = await res.json();
+            if (!res.ok) { showStatus(data.error || 'Export failed', 'error'); return; }
+
+            let content, filename, type;
+            if (format === 'json') {
+                content = JSON.stringify(data, null, 2);
+                filename = 'gatekeeper-' + sessionId + '.json';
+                type = 'application/json';
+            } else {
+                content = exportToMarkdown(data);
+                filename = 'gatekeeper-' + sessionId + '.md';
+                type = 'text/markdown';
+            }
+
+            const blob = new Blob([content], { type });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = filename; a.click();
+            URL.revokeObjectURL(url);
+        } catch (e) {
+            showStatus('Export failed', 'error');
+        }
+    }
+
+    function exportToMarkdown(data) {
+        let md = '# Gatekeeper Transcript\n\n';
+        md += '- **Session:** ' + data.sessionId + '\n';
+        md += '- **Student:** ' + data.studentId + '\n';
+        md += '- **Current Gate:** ' + data.currentGate + '\n';
+        md += '- **Passed Gates:** ' + (data.passedGates || []).join(', ') + '\n';
+        md += '- **Exported:** ' + data.exportedAt + '\n';
+        md += '- **Hash Chain Valid:** ' + data.hashChainValid + '\n';
+        md += '- **Final Hash:** ' + (data.finalHash || '') + '\n\n';
+        md += '---\n\n';
+
+        for (const event of (data.events || [])) {
+            const ts = event.timestamp ? event.timestamp.substring(0, 19) : '';
+            const type = event.type;
+            const p = event.payload || {};
+
+            if (type === 'STUDENT_MESSAGE') {
+                md += '**[' + ts + '] Student:**\n' + (p.content || '') + '\n\n';
+            } else if (type === 'TUTOR_MESSAGE') {
+                md += '**[' + ts + '] Tutor' + (p.source === 'scripted' ? ' (scripted)' : '') + ':**\n' + (p.content || '') + '\n\n';
+            } else if (type === 'GATE_SUBMITTED') {
+                md += '**[' + ts + '] Gate ' + (p.gate ?? '') + ' submitted** (' + (p.wordCount || 0) + ' words)\n\n';
+            } else if (type === 'GATE_UNLOCKED') {
+                md += '**[' + ts + '] Gate ' + (p.gate ?? '') + ' UNLOCKED**\n\n';
+            } else if (type === 'GATE_FAILED') {
+                md += '**[' + ts + '] Gate ' + (p.gate ?? '') + ' FAILED:** ' + (p.reason || '') + '\n\n';
+            } else if (type === 'SESSION_STARTED') {
+                md += '**[' + ts + '] Session started**\n\n';
+            } else if (type === 'SESSION_RESUMED') {
+                md += '**[' + ts + '] Session resumed**\n\n';
+            }
+        }
+
+        md += '---\n*SHA-256 final hash: ' + (data.finalHash || 'N/A') + '*\n';
+        return md;
+    }
+
+    // ── Status bar ───────────────────────────────────────────────────────
+    function showStatus(msg, type) {
+        const bar = document.getElementById('statusBar');
+        bar.textContent = msg;
+        bar.className = 'status-bar ' + type;
+        setTimeout(() => { bar.className = 'status-bar'; }, 5000);
+    }
+</script>
+</body>
+</html>

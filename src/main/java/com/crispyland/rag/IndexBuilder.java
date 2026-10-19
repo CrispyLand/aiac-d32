@@ -80,6 +80,31 @@ public class IndexBuilder {
     }
 
     /**
+     * Builds a separate RAG index from the gatekeeper docs (files under docs/gatekeeper-rag/).
+     */
+    public IndexFile buildGatekeeperIndex() throws IOException {
+        List<LoadedDocument> allDocs = loader.loadAll();
+        List<LoadedDocument> gkDocs = allDocs.stream()
+                .filter(d -> d.sourceFile().contains("docs/gatekeeper-rag/"))
+                .toList();
+        log.info("IndexBuilder [gatekeeper]: found {} gatekeeper docs out of {} total",
+                gkDocs.size(), allDocs.size());
+
+        List<Chunk> chunks = new ArrayList<>();
+        for (LoadedDocument doc : gkDocs) {
+            chunks.addAll(structured.chunk(doc));
+        }
+        log.info("IndexBuilder [gatekeeper]: {} chunks before embedding", chunks.size());
+
+        chunks = embedAll(chunks);
+
+        IndexMetadata meta = buildMetadata("gatekeeper", chunks);
+        IndexFile file = new IndexFile(meta, chunks);
+        store.save(file, "gatekeeper");
+        return file;
+    }
+
+    /**
      * Chunks, embeds, and merges a single document into the existing structured index.
      * Existing chunks from the same sourceFile are replaced, not duplicated.
      */

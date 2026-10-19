@@ -64,6 +64,7 @@ public class IndexerController {
                 builder.buildAndSave("fixed");
                 builder.buildAndSave("structured");
                 builder.buildSupportFaqIndex();
+                builder.buildGatekeeperIndex();
                 log.info("Re-indexing complete.");
             } catch (IOException e) {
                 log.error("Re-indexing failed: {}", e.getMessage(), e);

@@ -56,3 +56,6 @@ token.json
 
 ### devagent run logs — local-only, regenerated on each run
 .devagent/
+
+### Gatekeeper student session data — never commit
+gatekeeper-data/
