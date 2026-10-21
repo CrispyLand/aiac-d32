@@ -215,6 +215,7 @@
 										<include>README.md</include>
 										<include>CLAUDE.md</include>
 										<include>docs/**/*.md</include>
+										<include>docs/**/*.txt</include>
 									</includes>
 								</resource>
 							</resources>

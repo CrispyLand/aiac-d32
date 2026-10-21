@@ -43,6 +43,12 @@ public class IndexerController {
         // per-file breakdown: sourceFile → chunk count, sorted by file name
         structuredOpt.ifPresent(s -> model.addAttribute("structuredFiles", fileBreakdown(s.chunks())));
         fixedOpt.ifPresent(f -> model.addAttribute("fixedFiles", fileBreakdown(f.chunks())));
+        // gatekeeper index
+        Optional<IndexFile> gatekeeperOpt = store.load("gatekeeper");
+        model.addAttribute("gatekeeper", gatekeeperOpt.orElse(null));
+        gatekeeperOpt.ifPresent(g -> model.addAttribute("gatekeeperSamples",
+                g.chunks().subList(0, Math.min(3, g.chunks().size()))));
+        gatekeeperOpt.ifPresent(g -> model.addAttribute("gatekeeperFiles", fileBreakdown(g.chunks())));
         return "indexer";
     }
 
@@ -82,6 +88,20 @@ public class IndexerController {
                 log.info("Support FAQ re-indexing complete.");
             } catch (IOException e) {
                 log.error("Support FAQ re-indexing failed: {}", e.getMessage(), e);
+            }
+        }, "indexer-thread").start();
+        return "redirect:/indexer";
+    }
+
+    @PostMapping("/reindex-gatekeeper")
+    public String reindexGatekeeper() {
+        new Thread(() -> {
+            try {
+                log.info("Gatekeeper re-indexing started...");
+                builder.buildGatekeeperIndex();
+                log.info("Gatekeeper re-indexing complete.");
+            } catch (IOException e) {
+                log.error("Gatekeeper re-indexing failed: {}", e.getMessage(), e);
             }
         }, "indexer-thread").start();
         return "redirect:/indexer";
