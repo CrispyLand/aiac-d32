@@ -635,19 +635,19 @@
         }
     }
 
-    // ── Paste blocking (disabled for testing) ─────────────────────────────
-    // document.getElementById('answerInput').addEventListener('paste', function(e) {
-    //     e.preventDefault();
-    //     showStatus('Pasting is not allowed in the answer box.', 'error');
-    //     const text = (e.clipboardData || window.clipboardData).getData('text');
-    //     if (sessionId) {
-    //         fetch('/api/gatekeeper/paste-log', {
-    //             method: 'POST',
-    //             headers: { 'Content-Type': 'application/json' },
-    //             body: JSON.stringify({ sessionId, gate: currentGate, content: text })
-    //         }).catch(() => {});
-    //     }
-    // });
+    // ── Paste blocking ─────────────────────────────────────────────────
+    document.getElementById('answerInput').addEventListener('paste', function(e) {
+        e.preventDefault();
+        showStatus('Pasting is not allowed in the answer box.', 'error');
+        const text = (e.clipboardData || window.clipboardData).getData('text');
+        if (sessionId) {
+            fetch('/api/gatekeeper/paste-log', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sessionId, gate: currentGate, content: text })
+            }).catch(() => {});
+        }
+    });
 
     // ── Export ────────────────────────────────────────────────────────────
     async function exportTranscript(format) {
