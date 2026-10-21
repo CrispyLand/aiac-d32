@@ -95,8 +95,11 @@
     <!-- Re-index button -->
     <div class="card">
         <h2>Actions</h2>
-        <form method="post" th:action="@{/indexer/reindex}">
-            <button type="submit">Re-index Documents</button>
+        <form method="post" th:action="@{/indexer/reindex}" style="display:inline-block;">
+            <button type="submit">Re-index All</button>
+        </form>
+        <form method="post" th:action="@{/indexer/reindex-gatekeeper}" style="display:inline-block; margin-left:8px;">
+            <button type="submit">Re-index Gatekeeper Only</button>
         </form>
         <p style="margin-top:10px; font-size:13px; color:var(--muted);">
             Indexing runs in the background. Refresh the page after a few seconds to see updated stats.
@@ -225,6 +228,40 @@
             </tr>
             </tbody>
         </table>
+    </div>
+
+    <!-- Gatekeeper index -->
+    <div class="card" th:if="${gatekeeper != null}">
+        <h2>Gatekeeper Index</h2>
+        <div style="margin-bottom:12px;">
+            <span class="stat">Chunks: <b th:text="${gatekeeper.metadata().totalChunks()}">0</b></span>
+            <span class="stat">Avg size: <b th:text="${gatekeeper.metadata().avgChunkSize()}">0</b> chars</span>
+            <span class="stat">Model: <b class="mono" th:text="${gatekeeper.metadata().embeddingModel()}">—</b></span>
+            <span class="stat">Indexed: <b class="mono" style="font-size:11px" th:text="${gatekeeper.metadata().indexedAt()}">—</b></span>
+        </div>
+        <table th:if="${gatekeeperFiles != null}">
+            <thead><tr><th>Source file</th><th style="text-align:right">Chunks</th></tr></thead>
+            <tbody>
+            <tr th:each="entry : ${gatekeeperFiles}">
+                <td class="mono" th:text="${entry.key}">—</td>
+                <td class="mono" style="text-align:right" th:text="${entry.value}">0</td>
+            </tr>
+            </tbody>
+        </table>
+        <div th:if="${gatekeeperSamples != null}" style="margin-top:16px;">
+            <h3 style="font-size:12px;text-transform:uppercase;color:var(--muted);">Sample chunks</h3>
+            <table>
+                <thead><tr><th>#</th><th>Section</th><th>Chars</th><th>Text preview</th></tr></thead>
+                <tbody>
+                <tr th:each="chunk : ${gatekeeperSamples}">
+                    <td th:text="${chunk.chunkIndex()}">0</td>
+                    <td th:text="${chunk.section()}">—</td>
+                    <td th:text="${chunk.charLength()}">0</td>
+                    <td><div class="text-preview" th:text="${#strings.abbreviate(chunk.text(), 200)}"></div></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <!-- Structured sample chunks -->
