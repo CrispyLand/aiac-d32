@@ -59,3 +59,6 @@ token.json
 
 ### Gatekeeper student session data — never commit
 gatekeeper-data/
+
+### Scanned textbook PDFs — large binaries, OCR'd text is committed instead
+docs/gatekeeper-rag/*.pdf
