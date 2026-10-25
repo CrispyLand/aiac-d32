@@ -710,7 +710,7 @@ public class GatekeeperController {
                 return "No reference material found for this topic.";
             }
             StringBuilder sb = new StringBuilder();
-            sb.append("Relevant reference material (use to guide questions, NEVER quote directly to the student):\n\n");
+            sb.append("Relevant textbook/course material (you may cite short quotes with page numbers):\n\n");
             for (int i = 0; i < result.finalChunks().size(); i++) {
                 ScoredChunk sc = result.finalChunks().get(i);
                 sb.append("[").append(i + 1).append("] (").append(sc.chunk().sourceFile()).append(")\n");
