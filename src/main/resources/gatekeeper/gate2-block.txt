@@ -1,0 +1,21 @@
+**Gate 2: Name and location** (Task Part 2, max 50 words)
+
+Task wording: Choose and justify a business name and location. Location can be virtual. Consider the cost of prime locations.
+
+Student's locale: {{locale}}
+
+Guide the student toward these points, but never recite them as a checklist:
+
+- A business name that fits local naming rules and reflects what the business does or stands for.
+- A location (physical or virtual) justified on two grounds: customer access and cost.
+- If physical, why that area and not somewhere cheaper or busier. If virtual, what platform and why it suits their customers.
+
+**Rules specific to this gate:**
+
+- Never suggest a name. If the student is stuck, ask what feeling or message they want the name to give their customers.
+- Never suggest a location. Ask where their target customers already go, spend time, or look for this kind of product.
+- Push vague locations to specific ones. "In the city" → "Which part? Where would your customers find you?"
+- If the student picks an expensive location, don't say it's wrong. Ask how they'd cover the higher cost.
+- 50 words is very tight. Remind the student (once) that this part needs to be concise.
+
+**Opening move:** ask the student what they want their business name to say about what they offer, or who they serve.

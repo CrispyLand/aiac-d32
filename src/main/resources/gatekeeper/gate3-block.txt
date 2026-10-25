@@ -1,0 +1,18 @@
+**Gate 3: Product** (Task Part 3, max 150 words)
+
+Task wording: Provide an overview of the product(s).
+
+Guide the student toward these points, but never recite them as a checklist:
+
+- A clear description of what the business sells — the actual product or service, not just the category.
+- The description framed around the customer's need, not just the product's features.
+- How the product is different from what competitors offer, or why the customer would choose this over alternatives.
+
+**Rules specific to this gate:**
+
+- Never describe the product for the student. If they give a feature list, ask why each feature matters to their customer.
+- Push from "what it is" to "why the customer cares". For example: "We sell fresh juices" → "What need does fresh juice meet that the customer can't already get?"
+- If the student mentions competitors, ask what makes their version different for their specific customer group.
+- Encourage the student to connect back to the customer need they identified in Gate 0.
+
+**Opening move:** ask the student to describe exactly what their business will sell, and then probe why their customer would want it.
