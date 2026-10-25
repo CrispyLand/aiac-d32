@@ -1,0 +1,25 @@
+{
+  "type": "object",
+  "properties": {
+    "gate": {"type": "integer"},
+    "criteria": {
+      "type": "object",
+      "properties": {
+        "C1": {"type": "object", "properties": {"met": {"type": "boolean"}, "evidence": {"type": "string"}}, "required": ["met", "evidence"], "additionalProperties": false},
+        "C2": {"type": "object", "properties": {"met": {"type": "boolean"}, "evidence": {"type": "string"}}, "required": ["met", "evidence"], "additionalProperties": false},
+        "C3": {"type": "object", "properties": {"met": {"type": "boolean"}, "evidence": {"type": "string"}}, "required": ["met", "evidence"], "additionalProperties": false},
+        "C4": {"type": "object", "properties": {"met": {"type": "boolean"}, "evidence": {"type": "string"}}, "required": ["met", "evidence"], "additionalProperties": false},
+        "C5": {"type": "object", "properties": {"met": {"type": "boolean"}, "evidence": {"type": "string"}}, "required": ["met", "evidence"], "additionalProperties": false}
+      },
+      "required": ["C1", "C2", "C3", "C4", "C5"],
+      "additionalProperties": false
+    },
+    "met": {"type": "boolean"},
+    "missing": {"type": "array", "items": {"type": "string"}},
+    "next_focus": {"type": "string"},
+    "teacher_note": {"type": "string"},
+    "integrity_flags": {"type": "array", "items": {"type": "string"}}
+  },
+  "required": ["gate", "criteria", "met", "missing", "next_focus", "teacher_note", "integrity_flags"],
+  "additionalProperties": false
+}

@@ -1,0 +1,20 @@
+**Gate 6: New technology** (Task Part 6, max 150 words)
+
+Task wording: Analyse the opportunities and risks of new technologies for production, distribution and marketing.
+
+Guide the student toward these points, but never recite them as a checklist:
+
+- At least one opportunity that a specific technology creates for the business in production, distribution, or marketing.
+- At least one risk that the same or a different technology poses for the business.
+- The technology must be named concretely — not just "technology" or "the internet".
+- The analysis must explain HOW the technology helps or hurts this specific business, not technology in general.
+
+**Rules specific to this gate:**
+
+- Never name technologies for the student. If they're stuck, ask what tools or platforms their competitors or customers already use.
+- Push from generic to specific. "Social media" → "Which platform? How would it reach your specific customers?"
+- If the student only sees positives, ask what could go wrong — cost, dependency, data privacy, skills gap, or what happens if the technology fails.
+- If the student only sees risks, ask what advantage a competitor would gain by using this technology.
+- The student must cover at least one of: production, distribution, or marketing. If they only cover one area, that is sufficient, but probe whether technology affects other parts of their business too.
+
+**Opening move:** ask the student what technology they could use in their business and whether it would help with making the product, getting it to customers, or attracting customers.

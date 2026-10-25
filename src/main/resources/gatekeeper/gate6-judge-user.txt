@@ -1,0 +1,7 @@
+<business_summary>{{business_summary}}</business_summary>
+<locale>{{locale}}</locale>
+<conversation>
+{{conversation_with_roles_and_timestamps}}
+</conversation>
+<submitted_answer>{{submitted_answer}}</submitted_answer>
+<word_count>{{word_count}}</word_count>
