@@ -1,0 +1,114 @@
+{
+  "gate": 3,
+  "questions": [
+    {
+      "id": "g3-q1",
+      "type": "multiple_choice",
+      "criteria": ["C1"],
+      "concept": "product_description",
+      "stem": "What makes a good product description for a business plan?",
+      "options": [
+        {"key": "a", "text": "Saying 'we sell good stuff'"},
+        {"key": "b", "text": "Describing specifically what the product or service is and what it includes"},
+        {"key": "c", "text": "Listing the price only"},
+        {"key": "d", "text": "Naming as many products as possible"}
+      ],
+      "correct": "b",
+      "explanation": "A good product description is specific: it explains what the product or service is, what it includes, and what makes it distinct. Vague descriptions like 'good stuff' tell the reader nothing useful.",
+      "textbookRef": "See pages 60–65 on products and services"
+    },
+    {
+      "id": "g3-q2",
+      "type": "true_false",
+      "criteria": ["C2"],
+      "concept": "features_vs_needs",
+      "stem": "Listing product features is enough to show you understand your customer's needs.",
+      "correct": false,
+      "explanation": "Product features describe what the product does. Customer needs describe the problem or want from the customer's perspective. You need to explain WHY the customer needs this — not just what it does.",
+      "textbookRef": "See pages 8–12 on customer needs"
+    },
+    {
+      "id": "g3-q3",
+      "type": "multiple_choice",
+      "criteria": ["C3"],
+      "concept": "differentiation",
+      "stem": "What does 'product differentiation' mean?",
+      "options": [
+        {"key": "a", "text": "Making the cheapest product possible"},
+        {"key": "b", "text": "What makes your product different from or better than alternatives"},
+        {"key": "c", "text": "Selling the same product as everyone else"},
+        {"key": "d", "text": "Having the most products in your shop"}
+      ],
+      "correct": "b",
+      "explanation": "Product differentiation is what sets your product apart from competitors or alternatives. It could be quality, uniqueness, price, service, convenience, or any feature that gives customers a reason to choose you.",
+      "textbookRef": "See pages 65–70 on competition and differentiation"
+    },
+    {
+      "id": "g3-q4",
+      "type": "matching",
+      "criteria": ["C1", "C2", "C3"],
+      "concept": "product_elements",
+      "stem": "Match each statement to the correct product concept.",
+      "pairs": [
+        {"left": "Freshly baked sourdough bread loaves", "right": "Product description"},
+        {"left": "Health-conscious families wanting natural food", "right": "Customer need"},
+        {"left": "No other local bakery uses traditional methods", "right": "Differentiation"}
+      ],
+      "correct": null,
+      "explanation": "A complete product overview covers three things: what you sell (description), why customers want it (need), and why they would choose you over alternatives (differentiation).",
+      "textbookRef": "See pages 60–70 on product planning"
+    },
+    {
+      "id": "g3-q5",
+      "type": "true_false",
+      "criteria": ["C3"],
+      "concept": "competition",
+      "stem": "If no one else sells exactly the same product, you have no competition.",
+      "correct": false,
+      "explanation": "Competition includes any alternative way customers could meet the same need. Even if no one sells exactly what you do, customers can choose substitutes, do without, or solve their problem differently.",
+      "textbookRef": "See pages 65–70 on competition and differentiation"
+    },
+    {
+      "id": "g3-q6",
+      "type": "multiple_choice",
+      "criteria": ["C4"],
+      "concept": "consistency",
+      "stem": "Why must your product description be consistent with your earlier gates?",
+      "options": [
+        {"key": "a", "text": "It doesn't need to be — each gate is separate"},
+        {"key": "b", "text": "Because the product must match the business idea, ownership structure and location you already chose"},
+        {"key": "c", "text": "Because the teacher said so"},
+        {"key": "d", "text": "Because you cannot change your mind about anything"}
+      ],
+      "correct": "b",
+      "explanation": "Your business plan must be internally consistent. The product you describe in this gate must logically fit with the business idea (Gate 0), ownership structure (Gate 1), and location (Gate 2) you already chose.",
+      "textbookRef": "See pages 60–70 on product planning"
+    },
+    {
+      "id": "g3-q7",
+      "type": "multiple_choice",
+      "criteria": ["C2"],
+      "concept": "customer_perspective",
+      "stem": "Which statement best shows a customer need?",
+      "options": [
+        {"key": "a", "text": "Our cake has three layers and costs $45"},
+        {"key": "b", "text": "Parents need impressive birthday cakes but don't have time to bake"},
+        {"key": "c", "text": "We use premium ingredients"},
+        {"key": "d", "text": "The cake comes in a nice box"}
+      ],
+      "correct": "b",
+      "explanation": "Option B describes the customer's problem from their perspective: they need something (impressive cake) but face a barrier (no time to bake). The other options describe product features, not customer needs.",
+      "textbookRef": "See pages 8–12 on customer needs"
+    },
+    {
+      "id": "g3-q8",
+      "type": "true_false",
+      "criteria": ["C1"],
+      "concept": "specificity",
+      "stem": "'Food products' is a specific enough product description for a business plan.",
+      "correct": false,
+      "explanation": "'Food products' is a category, not a specific product. A business plan needs to say exactly what food — for example, 'handmade gourmet chocolates in gift boxes' is specific enough.",
+      "textbookRef": "See pages 60–65 on products and services"
+    }
+  ]
+}

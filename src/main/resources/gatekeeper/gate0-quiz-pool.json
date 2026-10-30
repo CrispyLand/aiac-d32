@@ -1,0 +1,146 @@
+{
+  "gate": 0,
+  "questions": [
+    {
+      "id": "g0-q1",
+      "type": "multiple_choice",
+      "criteria": ["C2"],
+      "concept": "target_customer",
+      "stem": "Which best describes a 'target customer'?",
+      "options": [
+        {"key": "a", "text": "Anyone who might buy the product"},
+        {"key": "b", "text": "A specific group sharing a need or characteristic"},
+        {"key": "c", "text": "The person who pays the most"},
+        {"key": "d", "text": "A business's competitors"}
+      ],
+      "correct": "b",
+      "explanation": "A target customer is a defined group who share a characteristic — such as age, location or lifestyle — that makes them likely to need what you sell. 'Everyone' is not a target customer.",
+      "textbookRef": "See pages 8–12 on identifying customers and market research"
+    },
+    {
+      "id": "g0-q2",
+      "type": "true_false",
+      "criteria": ["C3"],
+      "concept": "customer_need_vs_feature",
+      "stem": "A customer need is the same thing as a product feature.",
+      "correct": false,
+      "explanation": "A customer need is the problem or want seen from the customer's perspective. A product feature is how the product addresses it. For example, 'not enough time to cook' is a need; 'ready in 5 minutes' is a feature.",
+      "textbookRef": "See pages 8–12 on customer needs and wants"
+    },
+    {
+      "id": "g0-q3",
+      "type": "multiple_choice",
+      "criteria": ["C1"],
+      "concept": "product_vs_service",
+      "stem": "A student writes: 'My business will make money by helping people.' What is missing?",
+      "options": [
+        {"key": "a", "text": "A business name"},
+        {"key": "b", "text": "A specific product or service"},
+        {"key": "c", "text": "A financial plan"},
+        {"key": "d", "text": "A marketing strategy"}
+      ],
+      "correct": "b",
+      "explanation": "A business idea must state concretely what the business sells — a specific product or service. 'Helping people' is too vague to be a business idea.",
+      "textbookRef": "See pages 5–8 on business activity and enterprise"
+    },
+    {
+      "id": "g0-q4",
+      "type": "multiple_choice",
+      "criteria": ["C4"],
+      "concept": "product_need_link",
+      "stem": "What does 'linking the product to the customer need' mean?",
+      "options": [
+        {"key": "a", "text": "Listing all the features of the product"},
+        {"key": "b", "text": "Explaining how the product solves the customer's specific problem"},
+        {"key": "c", "text": "Setting a competitive price"},
+        {"key": "d", "text": "Advertising the product on social media"}
+      ],
+      "correct": "b",
+      "explanation": "The link connects the product to the customer's need: it explains WHY this product solves THIS customer's problem. It is not about features, pricing, or promotion on their own.",
+      "textbookRef": "See pages 8–12 on understanding customer needs"
+    },
+    {
+      "id": "g0-q5",
+      "type": "true_false",
+      "criteria": ["C2"],
+      "concept": "specific_customer",
+      "stem": "'Everyone aged 10 to 80' is a well-defined target customer group.",
+      "correct": false,
+      "explanation": "A target customer must have at least one distinguishing characteristic. A range covering almost everyone is effectively the same as saying 'everyone' — it is not specific enough.",
+      "textbookRef": "See pages 8–12 on identifying customers and market research"
+    },
+    {
+      "id": "g0-q6",
+      "type": "matching",
+      "criteria": ["C1", "C3", "C4"],
+      "concept": "idea_components",
+      "stem": "Match each example to the correct part of a business idea.",
+      "pairs": [
+        {"left": "Handmade scented candles", "right": "Product"},
+        {"left": "Busy parents who need last-minute gifts", "right": "Target customer and need"},
+        {"left": "Ready-to-give packaging saves shopping time", "right": "Link between product and need"}
+      ],
+      "correct": null,
+      "explanation": "A complete business idea names a product, identifies a specific customer with a need, and explains how the product meets that need.",
+      "textbookRef": "See pages 5–12 on business ideas and enterprise"
+    },
+    {
+      "id": "g0-q7",
+      "type": "multiple_choice",
+      "criteria": ["C3"],
+      "concept": "identifying_need",
+      "stem": "Which of these is a customer NEED rather than a product feature?",
+      "options": [
+        {"key": "a", "text": "Made from organic ingredients"},
+        {"key": "b", "text": "Available in three sizes"},
+        {"key": "c", "text": "Parents struggle to find healthy school lunches"},
+        {"key": "d", "text": "Delivered within 24 hours"}
+      ],
+      "correct": "c",
+      "explanation": "A customer need describes a problem or want from the customer's point of view. The other options are product features — things the product does. The need is the reason the customer would care about those features.",
+      "textbookRef": "See pages 8–12 on customer needs and wants"
+    },
+    {
+      "id": "g0-q8",
+      "type": "multiple_choice",
+      "criteria": ["C1", "C2"],
+      "concept": "specificity",
+      "stem": "Which business idea is specific enough?",
+      "options": [
+        {"key": "a", "text": "A shop that sells stuff to people"},
+        {"key": "b", "text": "An online tutoring service for Year 11 maths students in Adelaide"},
+        {"key": "c", "text": "A business that makes money online"},
+        {"key": "d", "text": "Something with food for hungry people"}
+      ],
+      "correct": "b",
+      "explanation": "Option B names a specific service (online tutoring), a subject (maths), a customer group (Year 11 students), and a location (Adelaide). The others are too vague about what is sold or who buys it.",
+      "textbookRef": "See pages 5–12 on business ideas and enterprise"
+    },
+    {
+      "id": "g0-q9",
+      "type": "true_false",
+      "criteria": ["C4"],
+      "concept": "link_direction",
+      "stem": "Saying 'my product is good because it is cheap' is enough to show the link between product and customer need.",
+      "correct": false,
+      "explanation": "A link must explain how the product meets a specific customer's need. 'It is cheap' describes a feature but does not say which need it solves or for whom. The link must go from customer need to product, not just list a feature.",
+      "textbookRef": "See pages 8–12 on understanding customer needs"
+    },
+    {
+      "id": "g0-q10",
+      "type": "multiple_choice",
+      "criteria": ["C2", "C3"],
+      "concept": "need_vs_want",
+      "stem": "A student says their target customers are 'elderly residents in a retirement village who find it hard to cook meals.' Which parts are present?",
+      "options": [
+        {"key": "a", "text": "Only a customer group"},
+        {"key": "b", "text": "Only a customer need"},
+        {"key": "c", "text": "Both a specific customer group and a need"},
+        {"key": "d", "text": "Neither — it is too vague"}
+      ],
+      "correct": "c",
+      "explanation": "The customer group is specific (elderly residents in a retirement village — defined by age and location). The need is stated from their perspective (finding it hard to cook meals). Both elements are present.",
+      "textbookRef": "See pages 8–12 on customer needs and wants"
+    }
+  ]
+}

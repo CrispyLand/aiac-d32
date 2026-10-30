@@ -16,7 +16,6 @@ import com.crispyland.web.gatekeeper.GatekeeperSession.TimestampedMessage;
 import jakarta.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -75,6 +74,7 @@ public class GatekeeperController {
 
     public GatekeeperController(AgentProperties agentProperties,
                                  GatekeeperProperties gatekeeperProperties,
+                                 GatekeeperEventLog eventLog,
                                  RagSearcher ragSearcher,
                                  RagProperties ragProperties) {
         this.properties = gatekeeperProperties;
@@ -86,8 +86,7 @@ public class GatekeeperController {
         this.cerebras = new CerebrasLlmClient(
                 rest, mapper, agentProperties.endpoint(), agentProperties.apiKey());
 
-        Path dataDir = Paths.get(gatekeeperProperties.dataDir());
-        this.eventLog = new GatekeeperEventLog(dataDir);
+        this.eventLog = eventLog;
         this.gates = GateDefinition.loadAll();
         this.tutorSystemTemplate = GateDefinition.loadTutorSystem();
         this.resumePromptTemplate = GateDefinition.loadResumePrompt();
@@ -163,7 +162,7 @@ public class GatekeeperController {
     record ResumeRequest(String sessionId, String accessCode) {}
     record ResumeResponse(String sessionId, String studentId, int currentGate,
                            List<Integer> passedGates, List<TimestampedMessage> conversation,
-                           String resumeMessage, int totalGates) {}
+                           String resumeMessage, int totalGates, boolean pendingQuiz) {}
 
     @PostMapping("/api/gatekeeper/resume")
     @ResponseBody
@@ -219,7 +218,7 @@ public class GatekeeperController {
         return ResponseEntity.ok(new ResumeResponse(
                 req.sessionId(), session.getStudentId(), session.getCurrentGate(),
                 session.getPassedGates(), session.currentConversation(),
-                resumeMsg, gates.size()));
+                resumeMsg, gates.size(), properties.quizEnabled() && session.isPendingQuiz()));
     }
 
     // ── Chat ─────────────────────────────────────────────────────────────
@@ -693,12 +692,15 @@ public class GatekeeperController {
         // RAG search for relevant textbook content
         String ragContext = fetchRagContext(studentMessage, gate);
 
+        String quizResults = session.getLastQuizSummary(gate);
+
         return tutorSystemTemplate
                 .replace("{{business_summary}}",
                         session.getBusinessSummary().isEmpty()
                                 ? "(none yet)" : session.getBusinessSummary())
                 .replace("{{gate_block}}", gateBlock)
                 .replace("{{judge_feedback_or_none}}", judgeFeedback)
+                .replace("{{quiz_results_or_none}}", quizResults)
                 .replace("{{rag_context}}", ragContext);
     }
 
@@ -740,7 +742,7 @@ public class GatekeeperController {
         return switch (type) {
             case SESSION_STARTED, SESSION_RESUMED, STUDENT_MESSAGE, TUTOR_MESSAGE,
                  GATE_SUBMITTED, GATE_UNLOCKED, GATE_FAILED, PASTE_ATTEMPT,
-                 TRANSCRIPT_EXPORTED -> true;
+                 TRANSCRIPT_EXPORTED, QUIZ_PRESENTED, QUIZ_COMPLETED -> true;
             case JUDGE_RESULT, GUARD_DECISION, STUDENT_INTEGRITY_SIGNAL,
                  TEACHER_ANALYSIS_GENERATED, TEACHER_DECISION -> false;
         };

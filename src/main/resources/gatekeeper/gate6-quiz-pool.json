@@ -1,0 +1,120 @@
+{
+  "gate": 6,
+  "questions": [
+    {
+      "id": "g6-q1",
+      "type": "multiple_choice",
+      "criteria": ["C1"],
+      "concept": "technology_in_business",
+      "stem": "What counts as 'new technology' for a start-up business?",
+      "options": [
+        {"key": "a", "text": "Only robots and artificial intelligence"},
+        {"key": "b", "text": "Any technology the business could use in production, distribution or marketing"},
+        {"key": "c", "text": "Only technology invented in the last year"},
+        {"key": "d", "text": "Technology is not relevant to small businesses"}
+      ],
+      "correct": "b",
+      "explanation": "New technology for a business includes any tool, system or platform that could improve how the business makes products, delivers them, or reaches customers. It does not have to be cutting-edge — just new to this business.",
+      "textbookRef": "See pages 105–112 on technology and business"
+    },
+    {
+      "id": "g6-q2",
+      "type": "matching",
+      "criteria": ["C2", "C4"],
+      "concept": "technology_areas",
+      "stem": "Match each technology to the business area it mainly affects.",
+      "pairs": [
+        {"left": "Social media advertising", "right": "Marketing"},
+        {"left": "3D printing for prototypes", "right": "Production"},
+        {"left": "Online ordering and delivery tracking", "right": "Distribution"}
+      ],
+      "correct": null,
+      "explanation": "Technology can be applied to different areas of business: production (how you make things), distribution (how you get things to customers), and marketing (how you reach and attract customers).",
+      "textbookRef": "See pages 105–112 on technology applications"
+    },
+    {
+      "id": "g6-q3",
+      "type": "true_false",
+      "criteria": ["C3"],
+      "concept": "technology_risks",
+      "stem": "Adopting new technology is always beneficial for a business with no risks involved.",
+      "correct": false,
+      "explanation": "Technology brings both opportunities and risks. Risks include: high setup costs, a learning curve, technical failures, security concerns, and the possibility that the technology becomes outdated quickly.",
+      "textbookRef": "See pages 110–115 on risks of new technology"
+    },
+    {
+      "id": "g6-q4",
+      "type": "multiple_choice",
+      "criteria": ["C2"],
+      "concept": "technology_opportunity",
+      "stem": "How could social media technology create an opportunity for a small local bakery?",
+      "options": [
+        {"key": "a", "text": "It can't — social media is only for big companies"},
+        {"key": "b", "text": "The bakery could reach customers beyond its local area and showcase products visually"},
+        {"key": "c", "text": "Social media automatically bakes the bread"},
+        {"key": "d", "text": "It replaces the need for a physical shop"}
+      ],
+      "correct": "b",
+      "explanation": "Social media lets even small businesses reach a wider audience, showcase products with photos and videos, build a community, and take orders online. It is a low-cost marketing tool that creates real business opportunities.",
+      "textbookRef": "See pages 105–112 on technology and business"
+    },
+    {
+      "id": "g6-q5",
+      "type": "multiple_choice",
+      "criteria": ["C3"],
+      "concept": "technology_risk_example",
+      "stem": "What is a realistic risk of relying on an e-commerce platform to sell your products?",
+      "options": [
+        {"key": "a", "text": "The platform might change its fees or shut down, affecting your sales"},
+        {"key": "b", "text": "Customers will never trust online shopping"},
+        {"key": "c", "text": "The platform will steal your products"},
+        {"key": "d", "text": "There is no risk at all"}
+      ],
+      "correct": "a",
+      "explanation": "Depending on a third-party platform means you are vulnerable to their decisions: they could raise fees, change algorithms, or even close. This is a genuine business risk that needs a mitigation strategy.",
+      "textbookRef": "See pages 110–115 on risks of new technology"
+    },
+    {
+      "id": "g6-q6",
+      "type": "true_false",
+      "criteria": ["C1", "C2"],
+      "concept": "technology_specificity",
+      "stem": "'Using technology' is specific enough when describing how technology helps your business.",
+      "correct": false,
+      "explanation": "You need to name the specific technology (e.g., 'Instagram for marketing', 'Square for payments', 'Shopify for online sales') and explain exactly how it helps your particular business.",
+      "textbookRef": "See pages 105–112 on technology and business"
+    },
+    {
+      "id": "g6-q7",
+      "type": "multiple_choice",
+      "criteria": ["C4"],
+      "concept": "business_area",
+      "stem": "A business starts using QR codes on packaging that link to recipe videos. Which area of business does this affect?",
+      "options": [
+        {"key": "a", "text": "Production — how the product is made"},
+        {"key": "b", "text": "Distribution — how the product is delivered"},
+        {"key": "c", "text": "Marketing — how the business engages customers"},
+        {"key": "d", "text": "None of the above"}
+      ],
+      "correct": "c",
+      "explanation": "QR codes on packaging that provide extra content (like recipe videos) are a marketing strategy. They engage customers after purchase and build brand loyalty — this falls under marketing, not production or distribution.",
+      "textbookRef": "See pages 105–112 on technology applications"
+    },
+    {
+      "id": "g6-q8",
+      "type": "multiple_choice",
+      "criteria": ["C2", "C3"],
+      "concept": "technology_analysis",
+      "stem": "When analysing a technology for your business plan, you should:",
+      "options": [
+        {"key": "a", "text": "Only list the benefits"},
+        {"key": "b", "text": "Explain both the opportunity it creates AND the risks it brings"},
+        {"key": "c", "text": "Only focus on the cost"},
+        {"key": "d", "text": "Copy what your competitors use without thinking about it"}
+      ],
+      "correct": "b",
+      "explanation": "A good technology analysis covers both sides: the opportunity (how it helps your business) and the risk (what could go wrong). This shows critical thinking, which is what the assessment is looking for.",
+      "textbookRef": "See pages 105–115 on evaluating technology"
+    }
+  ]
+}

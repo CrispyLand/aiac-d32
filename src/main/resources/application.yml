@@ -350,6 +350,9 @@ gatekeeper:
   submit-rate-per-minute: 3
   paste-rate-per-minute: 5
   log-paste-excerpt: false
+  quiz-enabled: true
+  quiz-remedial-count: 3
+  quiz-reinforcement-count: 3
 
 devagent:
   enabled: false

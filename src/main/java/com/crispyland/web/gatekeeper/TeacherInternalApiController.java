@@ -5,8 +5,6 @@ import com.crispyland.agent.llm.CerebrasLlmClient;
 import com.crispyland.rag.RagSearcher;
 import com.crispyland.rag.RagProperties;
 import jakarta.servlet.http.HttpServletRequest;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +40,8 @@ public class TeacherInternalApiController {
     private final TeacherToolDispatcher dispatcher;
 
     public TeacherInternalApiController(AgentProperties agentProperties,
-                                         GatekeeperProperties gatekeeperProperties) {
+                                         GatekeeperProperties gatekeeperProperties,
+                                         GatekeeperEventLog eventLog) {
         this.properties = gatekeeperProperties;
 
         JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory();
@@ -52,8 +51,6 @@ public class TeacherInternalApiController {
         CerebrasLlmClient cerebras = new CerebrasLlmClient(
                 rest, mapper, agentProperties.endpoint(), agentProperties.apiKey());
 
-        Path dataDir = Paths.get(gatekeeperProperties.dataDir());
-        GatekeeperEventLog eventLog = new GatekeeperEventLog(dataDir);
         TeacherProgressAnalyzer analyzer = new TeacherProgressAnalyzer();
 
         this.dispatcher = new TeacherToolDispatcher(eventLog, analyzer, cerebras);

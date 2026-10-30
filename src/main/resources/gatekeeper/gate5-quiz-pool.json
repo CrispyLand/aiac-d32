@@ -1,0 +1,114 @@
+{
+  "gate": 5,
+  "questions": [
+    {
+      "id": "g5-q1",
+      "type": "multiple_choice",
+      "criteria": ["C1"],
+      "concept": "business_risk",
+      "stem": "What is a 'business risk' or 'challenge'?",
+      "options": [
+        {"key": "a", "text": "Something that will definitely happen to the business"},
+        {"key": "b", "text": "A potential problem that could negatively affect the business"},
+        {"key": "c", "text": "A type of insurance"},
+        {"key": "d", "text": "Something only large companies face"}
+      ],
+      "correct": "b",
+      "explanation": "A business risk or challenge is a potential problem that could hurt the business — such as losing customers, running out of money, or supply chain issues. Start-ups face many risks.",
+      "textbookRef": "See pages 90–95 on business risks"
+    },
+    {
+      "id": "g5-q2",
+      "type": "true_false",
+      "criteria": ["C3"],
+      "concept": "opportunity",
+      "stem": "A business opportunity is a chance to grow or improve the business.",
+      "correct": true,
+      "explanation": "An opportunity is a favourable circumstance the business could take advantage of — such as a gap in the market, a growing trend, new technology, or a partnership. Identifying opportunities helps a business plan for growth.",
+      "textbookRef": "See pages 95–100 on business opportunities"
+    },
+    {
+      "id": "g5-q3",
+      "type": "multiple_choice",
+      "criteria": ["C2"],
+      "concept": "risk_strategy",
+      "stem": "What is a 'strategy' for dealing with a business challenge?",
+      "options": [
+        {"key": "a", "text": "Ignoring the problem and hoping it goes away"},
+        {"key": "b", "text": "A specific plan of action to reduce or manage the risk"},
+        {"key": "c", "text": "Closing the business immediately"},
+        {"key": "d", "text": "Blaming someone else"}
+      ],
+      "correct": "b",
+      "explanation": "A strategy is a specific, practical plan to address the challenge. It should explain what the business would actually DO — not just acknowledge the problem exists.",
+      "textbookRef": "See pages 90–100 on risk management strategies"
+    },
+    {
+      "id": "g5-q4",
+      "type": "matching",
+      "criteria": ["C1", "C2", "C3", "C4"],
+      "concept": "risk_vs_opportunity",
+      "stem": "Classify each as a challenge or an opportunity.",
+      "pairs": [
+        {"left": "A new competitor enters the market", "right": "Challenge"},
+        {"left": "Growing demand for eco-friendly products", "right": "Opportunity"},
+        {"left": "Rising cost of raw materials", "right": "Challenge"}
+      ],
+      "correct": null,
+      "explanation": "Challenges threaten the business (competition, rising costs). Opportunities offer growth potential (market trends, unmet demand). Good planning addresses both.",
+      "textbookRef": "See pages 90–100 on risks and opportunities"
+    },
+    {
+      "id": "g5-q5",
+      "type": "true_false",
+      "criteria": ["C2"],
+      "concept": "specific_strategy",
+      "stem": "'We will deal with it' is a good enough strategy for a business challenge.",
+      "correct": false,
+      "explanation": "A strategy must be specific and actionable. 'We will deal with it' says nothing about what the business would actually do. A good strategy names concrete actions — like adjusting prices, finding new suppliers, or increasing marketing.",
+      "textbookRef": "See pages 90–100 on risk management strategies"
+    },
+    {
+      "id": "g5-q6",
+      "type": "multiple_choice",
+      "criteria": ["C4"],
+      "concept": "opportunity_strategy",
+      "stem": "If there is a growing trend of people wanting local, handmade products, what would be a good strategy to take advantage of this opportunity?",
+      "options": [
+        {"key": "a", "text": "Ignore the trend and keep doing the same thing"},
+        {"key": "b", "text": "Emphasise 'locally made' and 'handcrafted' in marketing to attract these customers"},
+        {"key": "c", "text": "Switch to mass-produced imported products"},
+        {"key": "d", "text": "Raise prices as high as possible"}
+      ],
+      "correct": "b",
+      "explanation": "To take advantage of an opportunity, your strategy should connect your existing strengths to the trend. If people want local handmade products and you make them, highlighting that in your marketing is a practical, specific strategy.",
+      "textbookRef": "See pages 95–100 on business opportunities"
+    },
+    {
+      "id": "g5-q7",
+      "type": "multiple_choice",
+      "criteria": ["C1", "C3"],
+      "concept": "identifying_risks",
+      "stem": "Which is a realistic challenge for a NEW start-up business?",
+      "options": [
+        {"key": "a", "text": "Having too many loyal customers from day one"},
+        {"key": "b", "text": "Building brand awareness when no one knows your business yet"},
+        {"key": "c", "text": "Having too much money to invest"},
+        {"key": "d", "text": "Shareholders demanding higher dividends"}
+      ],
+      "correct": "b",
+      "explanation": "New businesses face the challenge of being unknown. Building brand awareness takes time and money. This is a realistic, specific challenge relevant to start-ups — unlike options that assume existing success.",
+      "textbookRef": "See pages 90–95 on business risks"
+    },
+    {
+      "id": "g5-q8",
+      "type": "true_false",
+      "criteria": ["C3", "C4"],
+      "concept": "opportunity_connection",
+      "stem": "An opportunity must be connected to something the business can actually act on.",
+      "correct": true,
+      "explanation": "An opportunity is only useful if the business can realistically take advantage of it. A growing market for electric cars is not relevant to a bakery. The opportunity must connect to what your business does.",
+      "textbookRef": "See pages 95–100 on business opportunities"
+    }
+  ]
+}

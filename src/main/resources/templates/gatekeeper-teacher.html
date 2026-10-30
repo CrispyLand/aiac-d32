@@ -461,7 +461,7 @@
             if (eventFilter === 'conversation')
                 return ['STUDENT_MESSAGE','TUTOR_MESSAGE'].includes(e.type);
             if (eventFilter === 'gates')
-                return ['GATE_SUBMITTED','GATE_UNLOCKED','GATE_FAILED'].includes(e.type);
+                return ['GATE_SUBMITTED','GATE_UNLOCKED','GATE_FAILED','QUIZ_PRESENTED','QUIZ_COMPLETED'].includes(e.type);
             if (eventFilter === 'judge')
                 return ['JUDGE_RESULT','GATE_SUBMITTED','GATE_UNLOCKED','GATE_FAILED'].includes(e.type);
             if (eventFilter === 'integrity')
@@ -500,6 +500,12 @@
                     body = 'words=' + (p.wordCount||0); break;
                 case 'GATE_UNLOCKED':
                     body = 'Gate ' + (p.gate??'') + ' unlocked'; break;
+                case 'QUIZ_PRESENTED':
+                    body = (p.trigger || '') + ' concept quiz presented'; break;
+                case 'QUIZ_COMPLETED':
+                    body = (p.trigger || '') + ' concept quiz: ' + p.score + '/' + p.total;
+                    body += '\n' + (p.answers || []).map(a => a.questionId + ': ' + a.studentAnswer + (a.correct ? ' (correct)' : ' (incorrect)')).join('\n');
+                    break;
                 case 'GATE_FAILED':
                     body = 'reason: ' + (p.reason||''); break;
                 case 'TEACHER_ANALYSIS_GENERATED':
