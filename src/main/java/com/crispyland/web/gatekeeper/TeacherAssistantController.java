@@ -9,8 +9,6 @@ import com.crispyland.agent.llm.ToolResult;
 import com.crispyland.agent.llm.ToolRound;
 import com.crispyland.agent.llm.ToolSpec;
 import com.crispyland.agent.memory.Message;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -51,7 +49,8 @@ public class TeacherAssistantController {
     private final List<ToolSpec> toolSpecs;
 
     public TeacherAssistantController(AgentProperties agentProperties,
-                                       GatekeeperProperties gatekeeperProperties) {
+                                       GatekeeperProperties gatekeeperProperties,
+                                       GatekeeperEventLog eventLog) {
         this.properties = gatekeeperProperties;
         this.mapper = JsonMapper.builder().build();
 
@@ -61,8 +60,6 @@ public class TeacherAssistantController {
         this.cerebras = new CerebrasLlmClient(
                 rest, mapper, agentProperties.endpoint(), agentProperties.apiKey());
 
-        Path dataDir = Paths.get(gatekeeperProperties.dataDir());
-        GatekeeperEventLog eventLog = new GatekeeperEventLog(dataDir);
         TeacherProgressAnalyzer analyzer = new TeacherProgressAnalyzer();
         this.dispatcher = new TeacherToolDispatcher(eventLog, analyzer, cerebras);
 

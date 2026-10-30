@@ -219,6 +219,67 @@
         .export-row { display: flex; gap: 8px; margin-top: 16px; }
 
         .hidden { display: none !important; }
+
+        /* Quiz modal */
+        .quiz-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200;
+            display: flex; align-items: center; justify-content: center;
+            animation: quiz-fade-in 0.3s ease;
+        }
+        @keyframes quiz-fade-in { from { opacity: 0; } to { opacity: 1; } }
+        .quiz-modal {
+            background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+            padding: 28px 32px; max-width: 540px; width: 92%;
+            max-height: 85vh; overflow-y: auto;
+        }
+        .quiz-modal h2 { margin: 0 0 4px; font-size: 18px; }
+        .quiz-modal .quiz-sub { color: var(--muted); font-size: 13px; margin-bottom: 20px; }
+        .quiz-question-stem {
+            font-size: 15px; font-weight: 500; margin-bottom: 14px; line-height: 1.5;
+        }
+        .quiz-progress { color: var(--muted); font-size: 12px; margin-bottom: 8px; }
+        .quiz-options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+        .quiz-option {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 14px; border: 1px solid var(--line); border-radius: 8px;
+            cursor: pointer; transition: border-color 0.2s, background 0.2s;
+            font-size: 14px;
+        }
+        .quiz-option:hover { border-color: var(--accent); background: rgba(59,130,246,0.06); }
+        .quiz-option.selected { border-color: var(--accent); background: rgba(59,130,246,0.12); }
+        .quiz-option input[type="radio"] { accent-color: var(--accent); }
+        .quiz-tf-row { display: flex; gap: 10px; margin-bottom: 20px; }
+        .quiz-tf-btn {
+            flex: 1; padding: 12px; border: 1px solid var(--line); border-radius: 8px;
+            background: transparent; color: var(--ink); font-size: 15px; font-weight: 500;
+            cursor: pointer; transition: border-color 0.2s, background 0.2s;
+        }
+        .quiz-tf-btn:hover { border-color: var(--accent); }
+        .quiz-tf-btn.selected { border-color: var(--accent); background: rgba(59,130,246,0.12); }
+        .quiz-match-row {
+            display: flex; align-items: center; gap: 12px; margin-bottom: 10px;
+        }
+        .quiz-match-left {
+            flex: 1; font-size: 14px; padding: 8px 0;
+        }
+        .quiz-match-select {
+            flex: 1; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px;
+            background: var(--card); color: var(--ink); font-size: 14px;
+        }
+        .quiz-actions { display: flex; gap: 10px; justify-content: flex-end; }
+        .quiz-result-item {
+            padding: 12px; border: 1px solid var(--line); border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        .quiz-result-item.correct { border-color: var(--green); background: rgba(34,197,94,0.06); }
+        .quiz-result-item.wrong { border-color: var(--red); background: rgba(239,68,68,0.06); }
+        .quiz-result-item .stem { font-weight: 500; margin-bottom: 6px; }
+        .quiz-result-item .verdict { font-size: 13px; margin-bottom: 4px; }
+        .quiz-result-item .explanation { font-size: 13px; color: var(--muted); line-height: 1.4; }
+        .quiz-score {
+            text-align: center; font-size: 28px; font-weight: 700;
+            margin: 12px 0 16px; color: var(--accent);
+        }
     </style>
 </head>
 <body>
@@ -277,6 +338,11 @@
             <button class="btn btn-green" onclick="submitAnswer()" id="submitBtn">Submit Answer</button>
             <span id="submitStatus" style="font-size:13px;color:var(--muted);"></span>
         </div>
+    </div>
+
+    <!-- Quiz modal (dynamically populated) -->
+    <div class="quiz-overlay hidden" id="quizOverlay">
+        <div class="quiz-modal" id="quizModal"></div>
     </div>
 
     <!-- Export row -->
@@ -352,6 +418,7 @@
             renderGatePath();
             addMessage('tutor', data.openingMessage);
             updateAnswerSection();
+            if (data.pendingQuiz) startQuiz('remedial');
         } catch (e) {
             errEl.textContent = 'Network error';
         } finally {
@@ -393,6 +460,7 @@
                 }
             }
             updateAnswerSection();
+            if (data.pendingQuiz) startQuiz('remedial');
         } catch (e) {
             errEl.textContent = 'Network error';
         } finally {
@@ -697,9 +765,15 @@
 
                 // Re-render gate path after animation
                 setTimeout(() => renderGatePath(), 700);
+
+                // Reinforcement quiz after unlock animation
+                setTimeout(() => startQuiz('reinforcement'), 8500);
             } else {
                 showStatus(data.message, 'error');
                 addMessage('system', data.message + ' Keep discussing with the tutor.');
+
+                // Remedial quiz after failure
+                setTimeout(() => startQuiz('remedial'), 1500);
             }
             document.getElementById('submitStatus').textContent = '';
         } catch (e) {
@@ -708,6 +782,236 @@
         } finally {
             document.getElementById('submitBtn').disabled = false;
         }
+    }
+
+    // ── Quiz ──────────────────────────────────────────────────────────
+    let activeQuizData = null; // { quizId, questions, currentIndex, answers, trigger }
+
+    let quizStarting = false;
+
+    async function startQuiz(trigger) {
+        if (activeQuizData || quizStarting) return;
+        quizStarting = true;
+        selectedQuizAnswer = '';
+        try {
+            const res = await fetch('/api/gatekeeper/quiz/start', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sessionId, trigger })
+            });
+            const data = await res.json();
+            if (!res.ok || !data.quizId) return;
+
+            activeQuizData = {
+                quizId: data.quizId,
+                questions: data.questions,
+                currentIndex: 0,
+                answers: [],
+                trigger: trigger
+            };
+            showQuizQuestion(0);
+            document.getElementById('quizOverlay').classList.remove('hidden');
+        } catch (e) {
+            console.error('Quiz start failed:', e);
+        } finally {
+            quizStarting = false;
+        }
+    }
+
+    function showQuizQuestion(index) {
+        const q = activeQuizData.questions[index];
+        const total = activeQuizData.questions.length;
+        const modal = document.getElementById('quizModal');
+
+        const title = activeQuizData.trigger === 'remedial'
+            ? 'Concept Check' : 'Reinforce Your Learning';
+        const sub = activeQuizData.trigger === 'remedial'
+            ? 'Let\u2019s check your understanding before you try again.'
+            : 'Quick review of what you just demonstrated.';
+
+        let html = '<h2>' + escHtml(title) + '</h2>';
+        html += '<div class="quiz-sub">' + escHtml(sub) + '</div>';
+        html += '<div class="quiz-progress">Question ' + (index + 1) + ' of ' + total + '</div>';
+        html += '<div class="quiz-question-stem">' + escHtml(q.stem) + '</div>';
+
+        if (q.type === 'multiple_choice') {
+            html += '<div class="quiz-options">';
+            for (const opt of q.options) {
+                html += '<label class="quiz-option" onclick="selectQuizOption(this, \'' + escAttr(opt.key) + '\')">';
+                html += '<input type="radio" name="quiz-mc" value="' + escAttr(opt.key) + '"> ';
+                html += '<span><strong>' + escHtml(opt.key) + '.</strong> ' + escHtml(opt.text) + '</span>';
+                html += '</label>';
+            }
+            html += '</div>';
+        } else if (q.type === 'true_false') {
+            html += '<div class="quiz-tf-row">';
+            html += '<button class="quiz-tf-btn" onclick="selectTF(this, \'true\')">True</button>';
+            html += '<button class="quiz-tf-btn" onclick="selectTF(this, \'false\')">False</button>';
+            html += '</div>';
+        } else if (q.type === 'matching') {
+            html += '<div class="quiz-matching">';
+            for (const pair of q.pairs) {
+                html += '<div class="quiz-match-row">';
+                html += '<div class="quiz-match-left">' + escHtml(pair.left) + '</div>';
+                html += '<select class="quiz-match-select" data-left="' + escAttr(pair.left) + '">';
+                html += '<option value="">Select...</option>';
+                for (const choice of pair.rightChoices) {
+                    html += '<option value="' + escAttr(choice) + '">' + escHtml(choice) + '</option>';
+                }
+                html += '</select>';
+                html += '</div>';
+            }
+            html += '</div>';
+        }
+
+        html += '<div class="quiz-actions">';
+        if (activeQuizData.trigger === 'reinforcement') {
+            html += '<button class="btn btn-outline" onclick="skipQuiz()">Skip</button>';
+        }
+        html += '<button class="btn btn-primary" id="quizNextBtn" onclick="quizNext()">Next</button>';
+        html += '</div>';
+
+        modal.innerHTML = html;
+    }
+
+    let selectedQuizAnswer = '';
+
+    function selectQuizOption(el, value) {
+        document.querySelectorAll('.quiz-option').forEach(o => o.classList.remove('selected'));
+        el.classList.add('selected');
+        el.querySelector('input').checked = true;
+        selectedQuizAnswer = value;
+    }
+
+    function selectTF(el, value) {
+        document.querySelectorAll('.quiz-tf-btn').forEach(b => b.classList.remove('selected'));
+        el.classList.add('selected');
+        selectedQuizAnswer = value;
+    }
+
+    function quizNext() {
+        const q = activeQuizData.questions[activeQuizData.currentIndex];
+        let answer = '';
+
+        if (q.type === 'matching') {
+            const selects = document.querySelectorAll('.quiz-match-select');
+            const parts = [];
+            let allFilled = true;
+            selects.forEach(s => {
+                if (!s.value) allFilled = false;
+                parts.push(s.value);
+            });
+            if (!allFilled) { showStatus('Please match all items.', 'error'); return; }
+            answer = JSON.stringify(parts);
+        } else {
+            answer = selectedQuizAnswer;
+            if (!answer) { showStatus('Please select an answer.', 'error'); return; }
+        }
+
+        activeQuizData.answers.push({ questionId: q.id, answer });
+        selectedQuizAnswer = '';
+
+        if (activeQuizData.currentIndex < activeQuizData.questions.length - 1) {
+            activeQuizData.currentIndex++;
+            showQuizQuestion(activeQuizData.currentIndex);
+        } else {
+            submitQuiz();
+        }
+    }
+
+    function skipQuiz() {
+        document.getElementById('quizOverlay').classList.add('hidden');
+        activeQuizData = null;
+    }
+
+    async function submitQuiz() {
+        const button = document.getElementById('quizNextBtn');
+        button.disabled = true;
+        button.textContent = 'Submitting...';
+        try {
+            const res = await fetch('/api/gatekeeper/quiz/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    sessionId,
+                    quizId: activeQuizData.quizId,
+                    answers: activeQuizData.answers
+                })
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data.error || 'Quiz submit failed');
+            }
+            showQuizResults(data);
+        } catch (e) {
+            showStatus(e.message || 'Network error', 'error');
+            button.disabled = false;
+            button.textContent = 'Retry submission';
+            button.onclick = submitQuiz;
+        }
+    }
+
+    function showQuizResults(data) {
+        const modal = document.getElementById('quizModal');
+        const pct = Math.round((data.score / data.total) * 100);
+        const feedbackMsg = pct === 100 ? 'Great work! You understand these concepts well.'
+            : pct >= 67 ? 'Good effort! Review the areas below to strengthen your understanding.'
+            : 'These concepts need more attention. Read the suggested pages and discuss with the tutor.';
+
+        let html = '<h2>Quiz Results</h2>';
+        html += '<div class="quiz-score">' + data.score + ' / ' + data.total + '</div>';
+        html += '<div style="text-align:center;color:var(--muted);font-size:14px;margin-bottom:20px;">' + escHtml(feedbackMsg) + '</div>';
+
+        for (const r of data.results) {
+            const cls = r.correct ? 'correct' : 'wrong';
+            html += '<div class="quiz-result-item ' + cls + '">';
+            html += '<div class="stem">' + escHtml(r.stem) + '</div>';
+            html += '<div class="verdict">' + (r.correct ? '&#10003; Correct' : '&#10007; Incorrect');
+            if (!r.correct && r.correctAnswer != null) {
+                html += ' &mdash; answer: <strong>' + escHtml(String(r.correctAnswer)) + '</strong>';
+            }
+            html += '</div>';
+            html += '<div class="explanation">' + escHtml(r.explanation) + '</div>';
+            if (!r.correct && r.textbookRef) {
+                html += '<div style="margin-top:6px;font-size:13px;color:var(--accent);">&#128218; ' + escHtml(r.textbookRef) + '</div>';
+            }
+            html += '</div>';
+        }
+
+        // Focus areas summary for wrong answers
+        const wrongOnes = data.results.filter(r => !r.correct);
+        if (wrongOnes.length > 0) {
+            html += '<div style="margin-top:16px;padding:14px;border:1px solid var(--orange);border-radius:8px;background:rgba(245,158,11,0.06);">';
+            html += '<div style="font-weight:600;font-size:14px;margin-bottom:8px;color:var(--orange);">Focus areas</div>';
+            html += '<ul style="margin:0;padding-left:18px;font-size:13px;color:var(--muted);line-height:1.6;">';
+            for (const r of wrongOnes) {
+                const concept = r.concept ? r.concept.replace(/_/g, ' ') : '';
+                let item = concept ? concept.charAt(0).toUpperCase() + concept.slice(1) : 'Review this topic';
+                if (r.textbookRef) item += ' — ' + r.textbookRef;
+                html += '<li>' + escHtml(item) + '</li>';
+            }
+            html += '</ul>';
+            html += '</div>';
+        }
+
+        html += '<div class="quiz-actions" style="margin-top:16px;">';
+        html += '<button class="btn btn-primary" onclick="closeQuiz()">Continue</button>';
+        html += '</div>';
+        modal.innerHTML = html;
+    }
+
+    function closeQuiz() {
+        document.getElementById('quizOverlay').classList.add('hidden');
+        activeQuizData = null;
+    }
+
+    function escHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    function escAttr(text) {
+        return text.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;');
     }
 
     // ── Paste blocking ─────────────────────────────────────────────────

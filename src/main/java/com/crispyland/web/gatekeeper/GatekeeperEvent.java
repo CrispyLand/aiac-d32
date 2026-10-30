@@ -33,6 +33,8 @@ public record GatekeeperEvent(
         GATE_UNLOCKED,
         GATE_FAILED,
         TRANSCRIPT_EXPORTED,
+        QUIZ_PRESENTED,
+        QUIZ_COMPLETED,
         TEACHER_ANALYSIS_GENERATED,
         TEACHER_DECISION
     }

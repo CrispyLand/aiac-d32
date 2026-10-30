@@ -1,0 +1,114 @@
+{
+  "gate": 4,
+  "questions": [
+    {
+      "id": "g4-q1",
+      "type": "multiple_choice",
+      "criteria": ["C1"],
+      "concept": "internal_influence",
+      "stem": "Which of these is an INTERNAL influence on a business?",
+      "options": [
+        {"key": "a", "text": "A new government regulation"},
+        {"key": "b", "text": "The skills and experience of the business owner"},
+        {"key": "c", "text": "A competitor opening nearby"},
+        {"key": "d", "text": "A change in economic conditions"}
+      ],
+      "correct": "b",
+      "explanation": "Internal influences come from inside the business: the owner's skills, available funding, equipment, staff, and business culture. External influences come from outside: government, economy, competition, technology.",
+      "textbookRef": "See pages 75–80 on internal influences on business"
+    },
+    {
+      "id": "g4-q2",
+      "type": "true_false",
+      "criteria": ["C1", "C3"],
+      "concept": "internal_vs_external",
+      "stem": "Competition from other businesses is an internal influence.",
+      "correct": false,
+      "explanation": "Competition is an EXTERNAL influence — it comes from outside the business. Internal influences are factors the business can control directly, like staffing, funding, and operations.",
+      "textbookRef": "See pages 75–88 on business influences"
+    },
+    {
+      "id": "g4-q3",
+      "type": "matching",
+      "criteria": ["C1", "C3"],
+      "concept": "influence_classification",
+      "stem": "Classify each influence as internal or external.",
+      "pairs": [
+        {"left": "Owner's limited budget", "right": "Internal"},
+        {"left": "New environmental laws", "right": "External"},
+        {"left": "Staff training level", "right": "Internal"}
+      ],
+      "correct": null,
+      "explanation": "Internal influences are within the business's control (budget, staff, equipment). External influences come from outside (laws, economy, competition, technology, society).",
+      "textbookRef": "See pages 75–88 on business influences"
+    },
+    {
+      "id": "g4-q4",
+      "type": "multiple_choice",
+      "criteria": ["C3"],
+      "concept": "external_influence",
+      "stem": "Which is an EXTERNAL influence that could affect a small food business?",
+      "options": [
+        {"key": "a", "text": "The owner's cooking experience"},
+        {"key": "b", "text": "The amount of money the owner invested"},
+        {"key": "c", "text": "New food safety regulations from the government"},
+        {"key": "d", "text": "The business's recipe collection"}
+      ],
+      "correct": "c",
+      "explanation": "Government regulations are external — they come from outside the business and the business cannot control them. The owner's experience, investment, and recipes are all internal factors.",
+      "textbookRef": "See pages 80–88 on external influences on business"
+    },
+    {
+      "id": "g4-q5",
+      "type": "multiple_choice",
+      "criteria": ["C2", "C4"],
+      "concept": "how_influences_cause_failure",
+      "stem": "How could 'limited start-up funding' (an internal influence) cause a business to fail?",
+      "options": [
+        {"key": "a", "text": "It can't — funding doesn't matter for a start-up"},
+        {"key": "b", "text": "The business might not be able to buy enough stock or equipment to operate effectively"},
+        {"key": "c", "text": "The business will automatically get a government grant"},
+        {"key": "d", "text": "Customers will know the business has no money"}
+      ],
+      "correct": "b",
+      "explanation": "Limited funding can prevent a business from purchasing necessary stock, equipment, or marketing. If you can't afford what you need to operate, the business cannot serve customers and may fail.",
+      "textbookRef": "See pages 75–88 on managing business influences"
+    },
+    {
+      "id": "g4-q6",
+      "type": "true_false",
+      "criteria": ["C2"],
+      "concept": "influence_explanation",
+      "stem": "Naming an influence is enough — you don't need to explain how it could cause the business to fail.",
+      "correct": false,
+      "explanation": "Naming an influence without explaining its impact is incomplete. You must show HOW the influence could specifically cause problems for YOUR business — not just that it exists.",
+      "textbookRef": "See pages 75–88 on managing business influences"
+    },
+    {
+      "id": "g4-q7",
+      "type": "multiple_choice",
+      "criteria": ["C4"],
+      "concept": "external_impact",
+      "stem": "A new competitor opens near your business. How could this external influence cause failure?",
+      "options": [
+        {"key": "a", "text": "It forces you to change your business name"},
+        {"key": "b", "text": "Customers may switch to the competitor, reducing your sales and revenue"},
+        {"key": "c", "text": "The government will close your business"},
+        {"key": "d", "text": "Your staff will automatically leave"}
+      ],
+      "correct": "b",
+      "explanation": "Competition can draw customers away from your business, especially if the competitor offers lower prices, better quality, or more convenience. This reduces your sales and can threaten your ability to cover costs.",
+      "textbookRef": "See pages 80–88 on external influences on business"
+    },
+    {
+      "id": "g4-q8",
+      "type": "true_false",
+      "criteria": ["C1", "C3"],
+      "concept": "control",
+      "stem": "A business can control its internal influences but cannot control external influences.",
+      "correct": true,
+      "explanation": "This is a key distinction. Internal influences (staff, funding, equipment) are within the business's control. External influences (economy, laws, competition) are outside the business's control — the business can only respond to them.",
+      "textbookRef": "See pages 75–88 on business influences"
+    }
+  ]
+}

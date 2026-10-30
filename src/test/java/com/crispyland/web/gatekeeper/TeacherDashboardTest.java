@@ -176,7 +176,7 @@ class TeacherDashboardTest {
         return switch (type) {
             case SESSION_STARTED, SESSION_RESUMED, STUDENT_MESSAGE, TUTOR_MESSAGE,
                  GATE_SUBMITTED, GATE_UNLOCKED, GATE_FAILED, PASTE_ATTEMPT,
-                 TRANSCRIPT_EXPORTED -> true;
+                 TRANSCRIPT_EXPORTED, QUIZ_PRESENTED, QUIZ_COMPLETED -> true;
             case JUDGE_RESULT, GUARD_DECISION, STUDENT_INTEGRITY_SIGNAL,
                  TEACHER_ANALYSIS_GENERATED, TEACHER_DECISION -> false;
         };

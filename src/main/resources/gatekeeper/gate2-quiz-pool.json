@@ -1,0 +1,114 @@
+{
+  "gate": 2,
+  "questions": [
+    {
+      "id": "g2-q1",
+      "type": "multiple_choice",
+      "criteria": ["C1"],
+      "concept": "business_name",
+      "stem": "Why is a business name important?",
+      "options": [
+        {"key": "a", "text": "It determines how much tax you pay"},
+        {"key": "b", "text": "It helps customers identify and remember your business"},
+        {"key": "c", "text": "It decides what products you can sell"},
+        {"key": "d", "text": "It is only needed for large companies"}
+      ],
+      "correct": "b",
+      "explanation": "A business name is important because it helps customers identify, remember and find your business. It is part of your brand identity and can influence first impressions.",
+      "textbookRef": "See pages 48–52 on branding and business identity"
+    },
+    {
+      "id": "g2-q2",
+      "type": "true_false",
+      "criteria": ["C2"],
+      "concept": "name_rules",
+      "stem": "In Australia, you can use any name you want for your business without checking if it is already taken.",
+      "correct": false,
+      "explanation": "In Australia, you must check that your business name is not already registered by another business. You also cannot use names that are identical or similar to existing trademarks, or names that are misleading or offensive.",
+      "textbookRef": "See pages 48–52 on branding and business identity"
+    },
+    {
+      "id": "g2-q3",
+      "type": "multiple_choice",
+      "criteria": ["C3"],
+      "concept": "location_factors",
+      "stem": "Which factor is MOST important when choosing a business location?",
+      "options": [
+        {"key": "a", "text": "The colour of the building"},
+        {"key": "b", "text": "Whether customers can easily get to it"},
+        {"key": "c", "text": "How close it is to the owner's house"},
+        {"key": "d", "text": "The age of the building"}
+      ],
+      "correct": "b",
+      "explanation": "Customer access is one of the most important location factors. If customers cannot easily reach your business, you will lose sales — regardless of how good your product is.",
+      "textbookRef": "See pages 53–58 on choosing a business location"
+    },
+    {
+      "id": "g2-q4",
+      "type": "multiple_choice",
+      "criteria": ["C4"],
+      "concept": "location_costs",
+      "stem": "How can business location affect costs?",
+      "options": [
+        {"key": "a", "text": "It doesn't — costs are the same everywhere"},
+        {"key": "b", "text": "Rent, utilities and transport costs vary by location"},
+        {"key": "c", "text": "Only online businesses have location costs"},
+        {"key": "d", "text": "Location only affects how much staff you need"}
+      ],
+      "correct": "b",
+      "explanation": "Different locations have different rent, utility, and transport costs. A prime city-centre spot costs more than a suburban location. Even online businesses face location-related costs like delivery and warehousing.",
+      "textbookRef": "See pages 53–58 on location costs and trade-offs"
+    },
+    {
+      "id": "g2-q5",
+      "type": "true_false",
+      "criteria": ["C3", "C4"],
+      "concept": "online_location",
+      "stem": "An online business does not have a 'location' that needs to be justified.",
+      "correct": false,
+      "explanation": "Even online businesses have location decisions: where the website is hosted, where stock is stored, where deliveries ship from, and what platform they sell on. These all affect costs and customer access.",
+      "textbookRef": "See pages 53–58 on choosing a business location"
+    },
+    {
+      "id": "g2-q6",
+      "type": "matching",
+      "criteria": ["C3", "C4"],
+      "concept": "location_tradeoffs",
+      "stem": "Match each location type to its main advantage.",
+      "pairs": [
+        {"left": "City centre shop", "right": "High foot traffic and visibility"},
+        {"left": "Home-based business", "right": "Low overhead costs"},
+        {"left": "Online-only store", "right": "Customers can access it from anywhere"}
+      ],
+      "correct": null,
+      "explanation": "Each location type has trade-offs. A city shop gets more walk-in customers but costs more. Home-based is cheap but limits visibility. Online reaches everyone but has delivery logistics.",
+      "textbookRef": "See pages 53–58 on location costs and trade-offs"
+    },
+    {
+      "id": "g2-q7",
+      "type": "multiple_choice",
+      "criteria": ["C2"],
+      "concept": "name_justification",
+      "stem": "Which is the best reason for choosing a business name?",
+      "options": [
+        {"key": "a", "text": "It sounds cool"},
+        {"key": "b", "text": "It tells customers what the business offers and is easy to remember"},
+        {"key": "c", "text": "It is the longest name possible"},
+        {"key": "d", "text": "It copies a famous brand"}
+      ],
+      "correct": "b",
+      "explanation": "A good business name should be memorable, relevant to what the business does, and give customers a sense of what to expect. It should also be legal and not copy another business.",
+      "textbookRef": "See pages 48–52 on branding and business identity"
+    },
+    {
+      "id": "g2-q8",
+      "type": "true_false",
+      "criteria": ["C4"],
+      "concept": "customer_access",
+      "stem": "A cheaper location is always the better choice for a new business.",
+      "correct": false,
+      "explanation": "A cheaper location saves money on rent, but if customers cannot easily reach you, sales will suffer. The best location balances cost with customer access — sometimes paying more for a better spot is worth it.",
+      "textbookRef": "See pages 53–58 on location and customer access"
+    }
+  ]
+}

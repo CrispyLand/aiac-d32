@@ -96,3 +96,33 @@ Tools exposed via the Model Context Protocol:
 - `/status` — queue info, rate limits, user ID
 - `/kill` — (admin) disable bot
 - `/resume` — (admin) re-enable bot
+
+## Gatekeeper concept quizzes
+
+Available when `gatekeeper.enabled` and `gatekeeper.quiz-enabled` are true. These
+pre-authored quizzes use deterministic grading and do not call an LLM or unlock gates.
+
+- `POST /api/gatekeeper/quiz/start` accepts `{ "sessionId": "...", "trigger": "remedial" }`
+  or `"reinforcement"`. Remedial quizzes follow the latest failed gate and prioritize
+  missing criteria; reinforcement reviews the gate just passed, including gate 6.
+  Returns `quizId`, `gate`, `trigger`, and `questions`, or `{ "quizAvailable": false }`.
+  Correct answers are excluded. Repeated starts resume the same unfinished quiz,
+  including after an application restart. Completed quizzes are not presented again
+  for the same gate outcome.
+- `POST /api/gatekeeper/quiz/submit` accepts `{ "sessionId": "...", "quizId": "...",
+  "answers": [{ "questionId": "...", "answer": "b" }] }`.
+  Answer values are option keys for multiple choice, `"true"`/`"false"` for true/false,
+  and a JSON-encoded array of right-hand labels in pair order for matching (for example,
+  `"[\"Product\",\"Customer need\"]"`). Every question must be answered exactly once.
+  Returns `score`, `total`, and per-question results, explanations, and textbook references.
+  A quiz belongs to its original session and gate; retrying a completed submission
+  returns its original result without appending another completion event.
+
+Question counts come from `quiz-remedial-count` and `quiz-reinforcement-count`
+(default 3 each, capped by the available pool). Attempts and individual answers are
+persisted in the session event log, appear in the teacher transcript, and inform
+the tutor's follow-up on missed concepts. Refreshing an incomplete remedial quiz
+resumes it; reinforcement quizzes can be skipped.
+
+Run UI interaction tests with `node --test src/test/js/*.test.cjs`. GitHub Actions
+runs these before the Maven checks.

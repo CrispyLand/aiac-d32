@@ -24,6 +24,14 @@ jobs:
           java-version: 21
           cache: maven
 
+      - name: Set up Node for UI tests
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Test Gatekeeper quiz interactions
+        run: node --test src/test/js/*.test.cjs
+
       # No real API keys — tests that need them are guarded by
       # @EnabledIfEnvironmentVariable and will be skipped.
       # AgentChatApplicationTests (@SpringBootTest) needs dummy env vars

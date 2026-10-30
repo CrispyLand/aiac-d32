@@ -1,0 +1,146 @@
+{
+  "gate": 1,
+  "questions": [
+    {
+      "id": "g1-q1",
+      "type": "multiple_choice",
+      "criteria": ["C1"],
+      "concept": "sole_trader",
+      "stem": "What is the main feature of a sole trader business structure?",
+      "options": [
+        {"key": "a", "text": "The business must have at least two owners"},
+        {"key": "b", "text": "One person owns and runs the business"},
+        {"key": "c", "text": "The business is owned by shareholders"},
+        {"key": "d", "text": "A board of directors makes all decisions"}
+      ],
+      "correct": "b",
+      "explanation": "A sole trader is a business owned and operated by one person. It is the simplest business structure — no partners, no shareholders, no board.",
+      "textbookRef": "See pages 33–37 on sole traders and partnerships"
+    },
+    {
+      "id": "g1-q2",
+      "type": "true_false",
+      "criteria": ["C2"],
+      "concept": "unlimited_liability",
+      "stem": "A sole trader has limited liability, meaning their personal assets are protected if the business fails.",
+      "correct": false,
+      "explanation": "A sole trader has UNLIMITED liability. This means the owner's personal assets (house, car, savings) can be used to pay business debts. This is a key risk of the sole trader structure.",
+      "textbookRef": "See pages 33–37 on sole traders and partnerships"
+    },
+    {
+      "id": "g1-q3",
+      "type": "multiple_choice",
+      "criteria": ["C1"],
+      "concept": "partnership",
+      "stem": "What is a partnership?",
+      "options": [
+        {"key": "a", "text": "A business run by the government"},
+        {"key": "b", "text": "A business owned by two or more people who share responsibility"},
+        {"key": "c", "text": "A large company listed on the stock exchange"},
+        {"key": "d", "text": "A business that only sells to other businesses"}
+      ],
+      "correct": "b",
+      "explanation": "A partnership is a business structure where two or more people share ownership, responsibilities, profits and liabilities.",
+      "textbookRef": "See pages 33–37 on sole traders and partnerships"
+    },
+    {
+      "id": "g1-q4",
+      "type": "multiple_choice",
+      "criteria": ["C2"],
+      "concept": "limited_liability",
+      "stem": "What does 'limited liability' mean for a company?",
+      "options": [
+        {"key": "a", "text": "The company cannot make a loss"},
+        {"key": "b", "text": "Owners can only lose the money they invested in the business"},
+        {"key": "c", "text": "The company has a limit on how much it can earn"},
+        {"key": "d", "text": "The owner must pay all debts personally"}
+      ],
+      "correct": "b",
+      "explanation": "Limited liability means the owners (shareholders) are only responsible for the amount they invested. Their personal assets are separate from the business debts.",
+      "textbookRef": "See pages 37–41 on limited liability and companies"
+    },
+    {
+      "id": "g1-q5",
+      "type": "matching",
+      "criteria": ["C1", "C3"],
+      "concept": "structure_comparison",
+      "stem": "Match each business structure to its key feature.",
+      "pairs": [
+        {"left": "Sole trader", "right": "One owner, unlimited liability"},
+        {"left": "Partnership", "right": "Two or more owners share profits"},
+        {"left": "Private company", "right": "Separate legal entity with shareholders"}
+      ],
+      "correct": null,
+      "explanation": "Each business structure has different ownership, liability and decision-making characteristics. Choosing the right one depends on the specific needs and risks of the business.",
+      "textbookRef": "See pages 33–47 on business ownership"
+    },
+    {
+      "id": "g1-q6",
+      "type": "true_false",
+      "criteria": ["C3"],
+      "concept": "choosing_structure",
+      "stem": "The best business structure is always a company because it offers limited liability.",
+      "correct": false,
+      "explanation": "There is no single 'best' structure. A company offers limited liability but is more expensive to set up and has more legal requirements. A sole trader is simpler and cheaper but carries more personal risk. The best choice depends on the specific business.",
+      "textbookRef": "See pages 33–47 on business ownership"
+    },
+    {
+      "id": "g1-q7",
+      "type": "multiple_choice",
+      "criteria": ["C4"],
+      "concept": "legal_requirements",
+      "stem": "Which of these is a legal requirement for starting a business in Australia?",
+      "options": [
+        {"key": "a", "text": "Hiring at least five employees"},
+        {"key": "b", "text": "Registering a business name if trading under a name other than your own"},
+        {"key": "c", "text": "Having a university degree in business"},
+        {"key": "d", "text": "Owning a physical shop"}
+      ],
+      "correct": "b",
+      "explanation": "In Australia, if you trade under a name other than your own legal name, you must register that business name with ASIC. Other requirements may include an ABN, permits, or licences depending on the type of business.",
+      "textbookRef": "See pages 42–47 on legal requirements for starting a business"
+    },
+    {
+      "id": "g1-q8",
+      "type": "multiple_choice",
+      "criteria": ["C4"],
+      "concept": "abn",
+      "stem": "What is an ABN?",
+      "options": [
+        {"key": "a", "text": "Australian Business Name — the trading name of a company"},
+        {"key": "b", "text": "Australian Business Number — a unique 11-digit identifier for a business"},
+        {"key": "c", "text": "Annual Business Notice — a tax report filed each year"},
+        {"key": "d", "text": "Approved Business Network — a government support programme"}
+      ],
+      "correct": "b",
+      "explanation": "An ABN (Australian Business Number) is an 11-digit number that identifies your business to the government and community. Most businesses need one to operate legally in Australia.",
+      "textbookRef": "See pages 42–47 on business registration"
+    },
+    {
+      "id": "g1-q9",
+      "type": "true_false",
+      "criteria": ["C2"],
+      "concept": "justification",
+      "stem": "Saying 'I chose sole trader because it is simple' is a strong justification linked to the business.",
+      "correct": false,
+      "explanation": "A strong justification links the structure choice to specific features of THIS business — its risks, costs, number of owners, or growth plans. 'It is simple' is a generic textbook reason, not connected to the student's particular business.",
+      "textbookRef": "See pages 33–47 on business ownership"
+    },
+    {
+      "id": "g1-q10",
+      "type": "multiple_choice",
+      "criteria": ["C2", "C3"],
+      "concept": "structure_factors",
+      "stem": "Which factor is MOST relevant when choosing between a sole trader and a partnership?",
+      "options": [
+        {"key": "a", "text": "The colour of the business logo"},
+        {"key": "b", "text": "Whether you need to share decision-making and financial responsibility"},
+        {"key": "c", "text": "What time the business opens"},
+        {"key": "d", "text": "The name of the business"}
+      ],
+      "correct": "b",
+      "explanation": "The key factors in choosing a business structure include: how many owners there are, who makes decisions, how profits are shared, and who is liable for debts. These are the factors that should drive the choice.",
+      "textbookRef": "See pages 33–47 on business ownership"
+    }
+  ]
+}

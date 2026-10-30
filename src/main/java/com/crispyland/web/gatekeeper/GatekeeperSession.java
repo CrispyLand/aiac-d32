@@ -21,6 +21,9 @@ public class GatekeeperSession {
     private String businessSummary = "";
     private String lastJudgeNextFocus = "";
     private Map<Integer, List<TimestampedMessage>> conversations = new LinkedHashMap<>();
+    private Map<Integer, List<QuizAttempt>> quizHistory = new LinkedHashMap<>();
+    private boolean pendingQuiz;
+    private int pendingQuizSince;
     private int eventCount;
     private String lastHash = "";
     private Instant createdAt;
@@ -77,6 +80,7 @@ public class GatekeeperSession {
                     businessSummary += entry;
                 }
                 currentGate = gate + 1;
+                pendingQuiz = false;
             }
             case JUDGE_RESULT -> {
                 JsonNode payload = event.payload();
@@ -85,7 +89,33 @@ public class GatekeeperSession {
                 }
             }
             case GATE_FAILED -> {
-                // nextFocus may be updated from the judge result that preceded this
+                pendingQuiz = true;
+                pendingQuizSince = event.seq();
+            }
+            case QUIZ_PRESENTED -> {
+                // Quiz shown to student — pendingQuiz remains true until completed
+            }
+            case QUIZ_COMPLETED -> {
+                int gate = event.gate();
+                if (gate == currentGate && "remedial".equals(textField(event.payload(), "trigger"))
+                        && event.payload().path("presentationSeq").asInt(0) > pendingQuizSince) {
+                    pendingQuiz = false;
+                }
+                JsonNode payload = event.payload();
+                if (payload != null) {
+                    String quizId = textField(payload, "quizId");
+                    String trigger = textField(payload, "trigger");
+                    int score = payload.has("score") ? payload.get("score").intValue() : 0;
+                    int total = payload.has("total") ? payload.get("total").intValue() : 0;
+                    List<QuizAttempt.QuizAnswer> answers = new ArrayList<>();
+                    for (JsonNode answer : payload.path("answers")) {
+                        answers.add(new QuizAttempt.QuizAnswer(answer.path("questionId").asText(),
+                                answer.path("studentAnswer").asText(), answer.path("correct").asBoolean(),
+                                answer.path("concept").asText(), answer.path("textbookRef").asText()));
+                    }
+                    QuizAttempt attempt = new QuizAttempt(quizId, gate, trigger, answers, score, total, event.timestamp());
+                    quizHistory.computeIfAbsent(gate, k -> new ArrayList<>()).add(attempt);
+                }
             }
             default -> {
                 // Other events don't affect snapshot state
@@ -114,6 +144,9 @@ public class GatekeeperSession {
     public Map<Integer, List<TimestampedMessage>> getConversations() { return conversations; }
     public int getEventCount() { return eventCount; }
     public String getLastHash() { return lastHash; }
+    public Map<Integer, List<QuizAttempt>> getQuizHistory() { return quizHistory; }
+    public boolean isPendingQuiz() { return pendingQuiz; }
+    public int getPendingQuizSince() { return pendingQuizSince; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getLastActivityAt() { return lastActivityAt; }
 
@@ -141,6 +174,19 @@ public class GatekeeperSession {
                 .toList();
     }
 
+    /** Get a summary of the last quiz for a gate, for inclusion in the tutor prompt. */
+    public String getLastQuizSummary(int gate) {
+        List<QuizAttempt> attempts = quizHistory.getOrDefault(gate, List.of());
+        if (attempts.isEmpty()) return "None.";
+        QuizAttempt last = attempts.getLast();
+        String review = last.answers().stream().filter(a -> !a.correct())
+                .map(a -> (a.concept() == null ? "Review this topic" : a.concept()).replace('_', ' ')
+                        + (a.textbookRef() == null || a.textbookRef().isBlank() ? "" : " (" + a.textbookRef() + ")"))
+                .distinct().collect(java.util.stream.Collectors.joining(", "));
+        return "The student completed a concept quiz. They scored " + last.score() + "/" + last.total() + "."
+                + (review.isBlank() ? "" : " Review concepts: " + review + ".");
+    }
+
     /** Compute word count: blank → 0, otherwise split on whitespace. */
     public static int wordCount(String text) {
         if (text == null || text.isBlank()) return 0;
@@ -158,6 +204,9 @@ public class GatekeeperSession {
     public void setConversations(Map<Integer, List<TimestampedMessage>> conversations) { this.conversations = conversations; }
     public void setEventCount(int eventCount) { this.eventCount = eventCount; }
     public void setLastHash(String lastHash) { this.lastHash = lastHash; }
+    public void setQuizHistory(Map<Integer, List<QuizAttempt>> quizHistory) { this.quizHistory = quizHistory; }
+    public void setPendingQuiz(boolean pendingQuiz) { this.pendingQuiz = pendingQuiz; }
+    public void setPendingQuizSince(int pendingQuizSince) { this.pendingQuizSince = pendingQuizSince; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
     public void setLastActivityAt(Instant lastActivityAt) { this.lastActivityAt = lastActivityAt; }
 }

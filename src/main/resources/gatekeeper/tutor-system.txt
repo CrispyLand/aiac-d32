@@ -57,6 +57,10 @@ These are the student's own words from earlier gates:
 
 {{judge_feedback_or_none}}
 
+## Last quiz results
+
+{{quiz_results_or_none}}
+
 ## Reference material
 
 The chunks below are from the textbook and course documents. Page numbers appear as "--- Page N ---" markers.

@@ -10,8 +10,6 @@ import com.crispyland.rag.RagSearcher;
 import com.crispyland.rag.ScoredChunk;
 import com.crispyland.web.gatekeeper.GatekeeperEvent.EventType;
 import jakarta.servlet.http.HttpServletRequest;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -52,6 +50,7 @@ public class TeacherDashboardController {
 
     public TeacherDashboardController(AgentProperties agentProperties,
                                        GatekeeperProperties gatekeeperProperties,
+                                       GatekeeperEventLog eventLog,
                                        RagSearcher ragSearcher,
                                        RagProperties ragProperties) {
         this.properties = gatekeeperProperties;
@@ -63,8 +62,7 @@ public class TeacherDashboardController {
         this.cerebras = new CerebrasLlmClient(
                 rest, mapper, agentProperties.endpoint(), agentProperties.apiKey());
 
-        Path dataDir = Paths.get(gatekeeperProperties.dataDir());
-        this.eventLog = new GatekeeperEventLog(dataDir);
+        this.eventLog = eventLog;
         this.analyzer = new TeacherProgressAnalyzer();
         this.ragSearcher = ragSearcher;
         this.gates = GateDefinition.loadAll();
