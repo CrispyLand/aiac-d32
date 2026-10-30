@@ -98,7 +98,7 @@ public class GatekeeperSession {
             case QUIZ_COMPLETED -> {
                 int gate = event.gate();
                 if (gate == currentGate && "remedial".equals(textField(event.payload(), "trigger"))
-                        && event.payload().path("presentationSeq").asInt(Integer.MAX_VALUE) > pendingQuizSince) {
+                        && event.payload().path("presentationSeq").asInt(0) > pendingQuizSince) {
                     pendingQuiz = false;
                 }
                 JsonNode payload = event.payload();

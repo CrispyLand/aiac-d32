@@ -161,6 +161,19 @@ class QuizControllerTest {
         assertThat(start("one", "remedial").quizId()).isNotEqualTo(quiz.quizId());
     }
 
+    @Test void completionWithoutPresentationReferenceCannotClearPendingQuiz() {
+        log.append("one", "student-one", 0, EventType.GATE_FAILED, mapper.createObjectNode());
+        var payload = mapper.createObjectNode();
+        payload.put("quizId", "legacy-quiz");
+        payload.put("trigger", "remedial");
+        payload.put("score", 1);
+        payload.put("total", 1);
+        log.append("one", "student-one", 0, EventType.QUIZ_COMPLETED, payload);
+        var session = log.rebuildSnapshot("one");
+        assertThat(session.isPendingQuiz()).isTrue();
+        assertThat(session.getQuizHistory().get(0)).hasSize(1);
+    }
+
     @Test void delayedCompletionUsesOriginalGateWithoutClearingLaterRemediation() {
         log.append("one", "student-one", 0, EventType.GATE_UNLOCKED, mapper.createObjectNode());
         var quiz = start("one", "reinforcement");
